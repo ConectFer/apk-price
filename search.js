@@ -1,43 +1,21 @@
-// api/search.js — Vercel serverless function
-// Proxies SerpAPI calls to avoid CORS issues from the frontend
-
-export default async function handler(req, res) {
-  // Allow all origins (your PWA needs this)
+// api/search.js
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
   const { q, api_key } = req.query;
-
-  if (!q || !api_key) {
-    return res.status(400).json({ error: 'Parâmetros q e api_key são obrigatórios' });
-  }
+  if (!q || !api_key) return res.status(400).json({ error: 'q e api_key sao obrigatorios' });
 
   try {
-    const serpUrl = new URL('https://serpapi.com/search.json');
-    serpUrl.searchParams.set('engine', 'google_shopping');
-    serpUrl.searchParams.set('q', q);
-    serpUrl.searchParams.set('gl', 'br');
-    serpUrl.searchParams.set('hl', 'pt-br');
-    serpUrl.searchParams.set('api_key', api_key);
-
-    const response = await fetch(serpUrl.toString());
-    const data = await response.json();
-
-    if (data.error) {
-      return res.status(400).json({ error: data.error });
-    }
-
-    // Filter and return only what the app needs
-    const items = data.shopping_results || data.inline_shopping_results || [];
-    return res.status(200).json({ shopping_results: items });
-
+    const url = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(q)}&gl=br&hl=pt-br&api_key=${encodeURIComponent(api_key)}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data.error) return res.status(400).json({ error: data.error });
+    return res.status(200).json({ shopping_results: data.shopping_results || data.inline_shopping_results || [] });
   } catch (err) {
-    return res.status(500).json({ error: 'Erro interno: ' + err.message });
+    return res.status(500).json({ error: err.message });
   }
-}
+};

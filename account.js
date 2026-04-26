@@ -1,6 +1,5 @@
-// api/account.js — verifica saldo da API Key via servidor
-
-export default async function handler(req, res) {
+// api/account.js
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,13 +7,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
   const { api_key } = req.query;
-  if (!api_key) return res.status(400).json({ error: 'api_key obrigatório' });
+  if (!api_key) return res.status(400).json({ error: 'api_key obrigatorio' });
 
   try {
-    const r = await fetch(`https://serpapi.com/account?api_key=${api_key}`);
+    const r = await fetch(`https://serpapi.com/account?api_key=${encodeURIComponent(api_key)}`);
     const data = await r.json();
     return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-}
+};
