@@ -8,11 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PriceWatch">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" href="./icon-192.png">
-<title>PriceWatch — Monitor de Preços</title>
+<title>PriceWatch</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 :root {
   --bg:#090c10; --border:#1e2530; --accent:#00e5ff; --green:#00ff88;
   --red:#ff4d6d; --yellow:#ffd166; --purple:#7b61ff;
@@ -23,890 +22,608 @@ html,body { height:100%; overflow:hidden; }
 body { font-family:'Syne',sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; }
 body::before {
   content:''; position:fixed; inset:0;
-  background-image:linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
   background-size:36px 36px; pointer-events:none; z-index:0;
 }
 
-.topbar {
-  position:relative; z-index:10; background:rgba(9,12,16,0.95);
-  backdrop-filter:blur(12px); border-bottom:1px solid var(--border);
-  padding:14px 18px 12px; display:flex; align-items:center; justify-content:space-between;
-  flex-shrink:0;
-}
-.topbar-left h1 { font-size:18px; font-weight:800; letter-spacing:-0.3px; }
-.topbar-left h1 span { color:var(--accent); }
-.topbar-left p { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.08em; }
-.status-pill {
-  display:flex; align-items:center; gap:6px;
-  background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.2);
-  border-radius:20px; padding:5px 11px;
-  font-family:'DM Mono',monospace; font-size:10px; color:var(--green);
-}
-.status-pill.inactive { background:rgba(90,100,120,0.1); border-color:var(--border); color:var(--muted); }
-.status-pill.warn { background:rgba(255,209,102,0.08); border-color:rgba(255,209,102,0.25); color:var(--yellow); }
-.status-dot { width:6px; height:6px; background:currentColor; border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
-.status-pill.inactive .status-dot { animation:none; }
+/* Topbar */
+.topbar { position:relative; z-index:10; background:rgba(9,12,16,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:14px 18px 12px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.topbar h1 { font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+.topbar h1 span { color:var(--accent); }
+.topbar p { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:.08em; }
+.pill { display:flex; align-items:center; gap:6px; border-radius:20px; padding:5px 11px; font-family:'DM Mono',monospace; font-size:10px; }
+.pill.ok   { background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.2); color:var(--green); }
+.pill.warn { background:rgba(255,209,102,.07); border:1px solid rgba(255,209,102,.2); color:var(--yellow); }
+.pill.off  { background:rgba(90,100,120,.1); border:1px solid var(--border); color:var(--muted); }
+.dot { width:6px; height:6px; background:currentColor; border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
+.pill.off .dot { animation:none; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-.content { flex:1; overflow-y:auto; overflow-x:hidden; position:relative; z-index:1; -webkit-overflow-scrolling:touch; padding-bottom:calc(80px + var(--safe-bottom)); }
-.page { padding:16px; display:none; }
+/* Content */
+.content { flex:1; overflow-y:auto; overflow-x:hidden; position:relative; z-index:1; -webkit-overflow-scrolling:touch; padding-bottom:calc(72px + var(--safe-bottom)); }
+.page { padding:14px; display:none; }
 .page.active { display:block; }
 
-.bottomnav {
-  position:fixed; bottom:0; left:0; right:0; z-index:100;
-  background:rgba(9,12,16,0.97); backdrop-filter:blur(16px);
-  border-top:1px solid var(--border); display:flex; padding-bottom:var(--safe-bottom);
-}
-.nav-item {
-  flex:1; display:flex; flex-direction:column; align-items:center;
-  padding:10px 4px 8px; gap:4px; cursor:pointer; transition:all 0.15s;
-  border:none; background:none; color:var(--muted); font-family:'Syne',sans-serif;
-}
-.nav-item.active { color:var(--accent); }
-.nav-item .nav-icon { font-size:20px; transition:transform 0.15s; }
-.nav-item.active .nav-icon { transform:translateY(-2px); }
-.nav-item span { font-size:10px; font-weight:600; letter-spacing:0.04em; }
+/* Bottom nav */
+.bottomnav { position:fixed; bottom:0; left:0; right:0; z-index:100; background:rgba(9,12,16,.97); backdrop-filter:blur(16px); border-top:1px solid var(--border); display:flex; padding-bottom:var(--safe-bottom); }
+.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:9px 4px 7px; gap:3px; cursor:pointer; border:none; background:none; color:var(--muted); font-family:'Syne',sans-serif; transition:color .15s; }
+.nav-btn.active { color:var(--accent); }
+.nav-btn .ico { font-size:19px; transition:transform .15s; }
+.nav-btn.active .ico { transform:translateY(-2px); }
+.nav-btn span { font-size:10px; font-weight:600; }
 
+/* Cards */
 .card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:12px; }
-.card-header { padding:14px 16px; border-bottom:1px solid var(--border); }
-.card-header h2 { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.card-head { padding:13px 16px; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
 .card-body { padding:14px 16px; }
 
-/* API Key Setup */
-.setup-banner {
-  background:linear-gradient(135deg, rgba(123,97,255,0.15), rgba(0,229,255,0.08));
-  border:1px solid rgba(123,97,255,0.3);
-  border-radius:14px; padding:16px; margin-bottom:14px;
-}
-.setup-banner h3 { font-size:14px; font-weight:800; margin-bottom:6px; }
-.setup-banner p { font-size:12px; color:#b0b8c8; line-height:1.55; margin-bottom:10px; }
-.setup-banner ol { font-size:12px; color:#b0b8c8; line-height:1.7; padding-left:18px; margin-bottom:12px; }
-.setup-banner ol a { color:var(--accent); text-decoration:none; font-weight:700; }
-.setup-banner ol a:hover { text-decoration:underline; }
-.api-input-row { display:flex; gap:8px; }
-.api-input-row input {
-  flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px;
-  padding:10px 12px; color:var(--text); font-family:'DM Mono',monospace;
-  font-size:11px; outline:none;
-}
-.api-input-row input:focus { border-color:var(--accent); }
-.api-input-row button {
-  background:var(--accent); color:#000; border:none; border-radius:8px;
-  padding:10px 16px; font-family:'Syne',sans-serif; font-weight:700;
-  font-size:12px; cursor:pointer; text-transform:uppercase;
-}
-.api-status { font-family:'DM Mono',monospace; font-size:10px; margin-top:8px; }
-.api-status.ok { color:var(--green); }
-.api-status.err { color:var(--red); }
+/* Setup banner */
+.setup-card { background:linear-gradient(135deg,rgba(123,97,255,.12),rgba(0,229,255,.06)); border:1px solid rgba(123,97,255,.3); border-radius:14px; padding:16px; margin-bottom:14px; }
+.setup-card h3 { font-size:15px; font-weight:800; margin-bottom:8px; }
+.setup-card p,.setup-card li { font-size:12px; color:#b0b8c8; line-height:1.65; }
+.setup-card ol { padding-left:18px; margin:8px 0 14px; }
+.setup-card a { color:var(--accent); font-weight:700; text-decoration:none; }
+.row { display:flex; gap:8px; align-items:center; }
+.inp { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; outline:none; transition:border-color .15s; }
+.inp:focus { border-color:var(--accent); }
+.inp::placeholder { color:var(--muted); }
+.btn-sm { background:var(--accent); color:#000; border:none; border-radius:8px; padding:10px 16px; font-family:'Syne',sans-serif; font-weight:700; font-size:12px; cursor:pointer; text-transform:uppercase; white-space:nowrap; transition:background .15s; }
+.btn-sm:active { background:#33ebff; }
+.api-msg { font-family:'DM Mono',monospace; font-size:10px; margin-top:7px; min-height:14px; }
+.api-msg.ok  { color:var(--green); }
+.api-msg.err { color:var(--red); }
 
-.product-card {
-  background:var(--card); border:1px solid var(--border); border-radius:14px;
-  padding:16px; margin-bottom:12px; position:relative; overflow:hidden;
-}
-.product-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
-.product-card.has-alert::before { background:var(--green); }
-.product-card.checking::before { background:var(--yellow); animation:blink .6s infinite; }
-
-.product-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
-.product-name { font-size:15px; font-weight:700; flex:1; padding-right:8px; }
-.product-actions { display:flex; gap:6px; }
-.btn-icon {
-  width:30px; height:30px; border-radius:8px; border:1px solid var(--border);
-  background:rgba(255,255,255,0.04); cursor:pointer; display:flex;
-  align-items:center; justify-content:center; font-size:14px; transition:all 0.15s;
-}
-.btn-icon:hover, .btn-icon:active { background:rgba(255,255,255,0.08); }
-.btn-icon.danger:active { background:rgba(255,77,109,0.15); border-color:var(--red); }
-
-.product-meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
-.meta-chip {
-  font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px;
-  border-radius:6px; border:1px solid var(--border); background:rgba(255,255,255,0.03);
-  color:var(--muted);
-}
-.meta-chip.alert-price { color:var(--yellow); border-color:rgba(255,209,102,0.3); background:rgba(255,209,102,0.06); }
-.meta-chip.lowest { color:var(--green); border-color:rgba(0,255,136,0.3); background:rgba(0,255,136,0.06); }
-
-.product-offers { display:flex; flex-direction:column; gap:6px; }
-.offer-item {
-  display:flex; align-items:center; justify-content:space-between;
-  background:rgba(255,255,255,0.02); border:1px solid var(--border);
-  border-radius:8px; padding:8px 12px; text-decoration:none; color:inherit;
-  transition:background 0.15s;
-}
-a.offer-item:active { background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.3); }
-.offer-store { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); display:flex; align-items:center; gap:5px; }
+/* Product cards */
+.pcard { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:15px; margin-bottom:12px; position:relative; overflow:hidden; }
+.pcard::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
+.pcard.alert-on::before { background:var(--green); animation:none; }
+.pcard.loading::before { background:var(--yellow); animation:blink .6s infinite; }
+.pcard-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:9px; }
+.pcard-name { font-size:15px; font-weight:700; flex:1; padding-right:8px; }
+.pcard-btns { display:flex; gap:6px; }
+.icon-btn { width:30px; height:30px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,.04); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:background .15s; }
+.icon-btn:active { background:rgba(255,255,255,.1); }
+.pcard-meta { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:9px; }
+.chip { font-family:'DM Mono',monospace; font-size:10px; padding:3px 7px; border-radius:6px; border:1px solid var(--border); background:rgba(255,255,255,.03); color:var(--muted); }
+.chip.y { color:var(--yellow); border-color:rgba(255,209,102,.3); background:rgba(255,209,102,.06); }
+.chip.g { color:var(--green); border-color:rgba(0,255,136,.3); background:rgba(0,255,136,.06); }
+.offers { display:flex; flex-direction:column; gap:5px; }
+.offer-row { display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:8px; padding:8px 11px; text-decoration:none; color:inherit; transition:background .15s; }
+a.offer-row:active { background:rgba(0,229,255,.07); border-color:rgba(0,229,255,.25); }
+.offer-left { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+.offer-right { display:flex; align-items:center; gap:7px; }
 .offer-price { font-family:'DM Mono',monospace; font-size:14px; font-weight:500; }
 .offer-price.best { color:var(--green); }
-.offer-link { font-size:12px; color:var(--accent); margin-left:6px; }
-
-.no-offers, .checking-row {
-  font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);
-  text-align:center; padding:12px;
-}
-.checking-row { color:var(--yellow); display:flex; align-items:center; justify-content:center; gap:8px; }
+.offer-link { font-size:13px; color:var(--accent); }
+.no-data { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); text-align:center; padding:12px; }
+.loading-row { display:flex; align-items:center; justify-content:center; gap:8px; font-family:'DM Mono',monospace; font-size:11px; color:var(--yellow); padding:10px; }
 .spin { animation:spin 1s linear infinite; display:inline-block; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-.form-group { margin-bottom:14px; }
-.form-label { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; display:block; }
-.form-input {
-  width:100%; background:var(--bg); border:1px solid var(--border);
-  border-radius:8px; padding:11px 14px; color:var(--text);
-  font-family:'DM Mono',monospace; font-size:14px; outline:none; transition:border-color 0.15s;
-}
-.form-input:focus { border-color:var(--accent); }
-.form-input::placeholder { color:var(--muted); }
-.input-row { display:flex; gap:8px; }
-.input-prefix {
-  background:var(--bg); border:1px solid var(--border); border-radius:8px;
-  padding:11px 12px; color:var(--muted); font-family:'DM Mono',monospace;
-  font-size:14px; flex-shrink:0;
-}
+/* Form */
+.flabel { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; display:block; }
+.finput { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:11px 13px; color:var(--text); font-family:'DM Mono',monospace; font-size:14px; outline:none; transition:border-color .15s; }
+.finput:focus { border-color:var(--accent); }
+.finput::placeholder { color:var(--muted); }
+.fgroup { margin-bottom:13px; }
+.prefix-row { display:flex; gap:8px; }
+.prefix { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:11px 12px; color:var(--muted); font-family:'DM Mono',monospace; font-size:14px; flex-shrink:0; }
+.interval-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.iopt { padding:9px 4px; text-align:center; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,.02); cursor:pointer; font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); transition:all .15s; }
+.iopt.sel { border-color:rgba(0,229,255,.4); background:rgba(0,229,255,.08); color:var(--accent); }
+.iopt .v { font-size:16px; font-weight:700; color:var(--text); margin-bottom:1px; }
+.iopt.sel .v { color:var(--accent); }
+.hint { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:6px; }
+.btn-full { width:100%; background:var(--accent); color:#000; border:none; border-radius:10px; padding:13px; font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer; text-transform:uppercase; letter-spacing:.04em; transition:background .2s; }
+.btn-full:active { background:#33ebff; }
+.btn-full:disabled { background:var(--muted); cursor:not-allowed; }
 
-.btn-primary {
-  width:100%; background:var(--accent); color:#000; border:none;
-  border-radius:10px; padding:13px; font-family:'Syne',sans-serif;
-  font-weight:700; font-size:14px; cursor:pointer; text-transform:uppercase;
-  letter-spacing:.05em; transition:all 0.2s;
-}
-.btn-primary:active { background:#33ebff; }
-.btn-primary:disabled { background:var(--muted); cursor:not-allowed; opacity:.6; }
-
-.permission-banner {
-  background:rgba(123,97,255,0.1); border:1px solid rgba(123,97,255,0.3);
-  border-radius:12px; padding:14px 16px; margin-bottom:14px;
-  display:flex; gap:12px; align-items:flex-start;
-}
-.permission-banner .icon { font-size:24px; flex-shrink:0; }
-.permission-banner h3 { font-size:13px; font-weight:700; margin-bottom:4px; }
-.permission-banner p { font-size:12px; color:var(--muted); line-height:1.5; }
-.btn-allow {
-  margin-top:10px; background:var(--purple); color:#fff; border:none;
-  border-radius:8px; padding:8px 16px; font-family:'Syne',sans-serif;
-  font-weight:700; font-size:12px; cursor:pointer;
-}
-
-.install-banner {
-  background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2);
-  border-radius:12px; padding:14px 16px; margin-bottom:14px;
-  display:flex; gap:12px; align-items:center;
-}
-.install-banner .icon { font-size:28px; flex-shrink:0; }
-.install-banner h3 { font-size:13px; font-weight:700; margin-bottom:3px; }
+/* Banners */
+.notif-banner { background:rgba(123,97,255,.1); border:1px solid rgba(123,97,255,.3); border-radius:12px; padding:13px 15px; margin-bottom:14px; }
+.notif-banner h3 { font-size:13px; font-weight:700; margin-bottom:3px; }
+.notif-banner p { font-size:12px; color:var(--muted); line-height:1.5; }
+.btn-allow { margin-top:10px; background:var(--purple); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-family:'Syne',sans-serif; font-weight:700; font-size:12px; cursor:pointer; }
+.install-banner { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.2); border-radius:12px; padding:13px 15px; margin-bottom:14px; display:flex; gap:12px; align-items:center; }
+.install-banner .ico { font-size:28px; flex-shrink:0; }
+.install-banner h3 { font-size:13px; font-weight:700; margin-bottom:2px; }
 .install-banner p { font-size:11px; color:var(--muted); line-height:1.4; }
-.btn-install {
-  background:var(--accent); color:#000; border:none; border-radius:8px;
-  padding:8px 14px; font-family:'Syne',sans-serif; font-weight:700;
-  font-size:12px; cursor:pointer; flex-shrink:0;
-}
+.btn-install { background:var(--accent); color:#000; border:none; border-radius:8px; padding:8px 13px; font-family:'Syne',sans-serif; font-weight:700; font-size:12px; cursor:pointer; flex-shrink:0; }
 
-.empty { text-align:center; padding:48px 20px; color:var(--muted); }
-.empty .icon { font-size:40px; margin-bottom:14px; opacity:.4; }
-.empty h3 { font-size:15px; font-weight:700; margin-bottom:6px; color:var(--text); opacity:.6; }
+/* Empty */
+.empty { text-align:center; padding:48px 16px; color:var(--muted); }
+.empty .ico { font-size:40px; margin-bottom:12px; opacity:.35; }
+.empty h3 { font-size:14px; font-weight:700; color:var(--text); opacity:.6; margin-bottom:5px; }
 .empty p { font-size:12px; line-height:1.6; }
 
-.toast {
-  position:fixed; bottom:calc(80px + var(--safe-bottom) + 10px); left:16px; right:16px;
-  background:var(--card); border:1px solid var(--border); border-radius:12px;
-  padding:12px 16px; z-index:999; font-size:13px;
-  display:flex; align-items:center; gap:10px;
-  transform:translateY(20px); opacity:0; transition:all .3s; pointer-events:none;
-}
-.toast.show { transform:translateY(0); opacity:1; }
-.toast.success { border-color:rgba(0,255,136,0.3); }
-.toast.error { border-color:rgba(255,77,109,0.3); }
-
-.interval-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.interval-opt {
-  padding:10px 6px; text-align:center; border-radius:8px;
-  border:1px solid var(--border); background:rgba(255,255,255,0.02);
-  cursor:pointer; transition:all .15s;
-  font-family:'DM Mono',monospace; font-size:12px; color:var(--muted);
-}
-.interval-opt.selected { border-color:rgba(0,229,255,0.4); background:rgba(0,229,255,0.08); color:var(--accent); }
-.interval-opt .val { font-size:17px; font-weight:700; color:var(--text); margin-bottom:2px; }
-.interval-opt.selected .val { color:var(--accent); }
-
-.settings-row {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px; border-bottom:1px solid var(--border);
-}
-.settings-row:last-child { border-bottom:none; }
-.settings-label { font-size:13px; font-weight:600; }
-.settings-sub { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
-
-.toggle {
-  width:44px; height:24px; border-radius:12px; border:none; cursor:pointer;
-  background:var(--border); position:relative; transition:background .2s; flex-shrink:0;
-}
+/* Settings */
+.srow { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; border-bottom:1px solid var(--border); }
+.srow:last-child { border-bottom:none; }
+.srow-label { font-size:13px; font-weight:600; }
+.srow-sub { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:2px; }
+.toggle { width:44px; height:24px; border-radius:12px; border:none; cursor:pointer; background:var(--border); position:relative; transition:background .2s; flex-shrink:0; }
 .toggle.on { background:var(--accent); }
-.toggle::after {
-  content:''; position:absolute; top:3px; left:3px;
-  width:18px; height:18px; border-radius:50%; background:#fff;
-  transition:transform .2s;
-}
+.toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .2s; }
 .toggle.on::after { transform:translateX(20px); }
+.usage-bar { height:5px; background:var(--border); border-radius:3px; overflow:hidden; margin-top:7px; }
+.usage-fill { height:100%; background:linear-gradient(90deg,var(--green),var(--accent)); transition:width .3s; border-radius:3px; }
+.usage-fill.warn { background:linear-gradient(90deg,var(--yellow),var(--red)); }
 
-.usage-bar {
-  width:100%; height:6px; background:var(--border); border-radius:3px;
-  overflow:hidden; margin-top:8px;
-}
-.usage-bar-fill { height:100%; background:linear-gradient(90deg, var(--green), var(--accent)); transition:width .3s; }
-.usage-bar-fill.warn { background:linear-gradient(90deg, var(--yellow), var(--red)); }
+/* Toast */
+.toast { position:fixed; bottom:calc(72px + var(--safe-bottom) + 8px); left:14px; right:14px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:11px 15px; z-index:999; font-size:13px; transform:translateY(20px); opacity:0; transition:all .25s; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.ok  { border-color:rgba(0,255,136,.3); }
+.toast.err { border-color:rgba(255,77,109,.3); }
 
-::-webkit-scrollbar { width:3px; }
-::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar { width:2px; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="topbar-left">
+  <div>
     <h1>Price<span>Watch</span></h1>
-    <p id="topbarSub">Monitor de preços</p>
+    <p id="sub">Configure a API para começar</p>
   </div>
-  <div class="status-pill inactive" id="statusPill">
-    <div class="status-dot"></div>
-    <span id="statusPillText">Configurar</span>
-  </div>
+  <div class="pill off" id="pill"><div class="dot"></div><span id="pillTxt">Aguardando</span></div>
 </div>
 
 <div class="content">
 
-  <!-- PAGE: Produtos -->
-  <div class="page active" id="page-products">
+  <!-- Produtos -->
+  <div class="page active" id="pg-list">
 
-    <div id="apiSetupCard" style="display:none">
-      <div class="setup-banner">
-        <h3>🔑 Configurar API de busca</h3>
-        <p>Para buscar preços reais, o app usa a <strong>SerpAPI</strong> — uma API oficial que retorna dados do Google Shopping de forma estruturada (sem ser bloqueada como bot).</p>
-        <ol>
-          <li>Crie conta grátis em <a href="https://serpapi.com/users/sign_up" target="_blank">serpapi.com</a> (100 buscas/mês grátis)</li>
-          <li>Copie sua API Key em <a href="https://serpapi.com/manage-api-key" target="_blank">serpapi.com/manage-api-key</a></li>
-          <li>Cole abaixo:</li>
-        </ol>
-        <div class="api-input-row">
-          <input type="password" id="apiKeyInput" placeholder="Cole sua API Key aqui..." autocomplete="off">
-          <button onclick="saveApiKey()">SALVAR</button>
-        </div>
-        <div class="api-status" id="apiKeyStatus"></div>
+    <div id="setupCard" class="setup-card">
+      <h3>🔑 Conectar API de busca</h3>
+      <p>O app usa a <strong>SerpAPI</strong> para buscar preços reais do Google Shopping — de forma legítima, sem ser bloqueado.</p>
+      <ol>
+        <li>Crie conta grátis em <a href="https://serpapi.com/users/sign_up" target="_blank">serpapi.com</a> <span style="color:var(--green);font-weight:700">(100 buscas/mês grátis)</span></li>
+        <li>Copie sua chave em <a href="https://serpapi.com/manage-api-key" target="_blank">serpapi.com/manage-api-key</a></li>
+        <li>Cole abaixo e salve:</li>
+      </ol>
+      <div class="row">
+        <input class="inp" type="password" id="keyInput" placeholder="Cole sua API Key aqui..." autocomplete="off" spellcheck="false">
+        <button class="btn-sm" onclick="saveKey()">Salvar</button>
       </div>
+      <div class="api-msg" id="keyMsg"></div>
     </div>
 
     <div id="installBanner" style="display:none" class="install-banner">
-      <div class="icon">📲</div>
-      <div style="flex:1">
-        <h3>Instale como app</h3>
-        <p>Funciona como app nativo, recebe notificações em background.</p>
-      </div>
-      <button class="btn-install" onclick="installApp()">Instalar</button>
+      <div class="ico">📲</div>
+      <div style="flex:1"><h3>Instalar como app</h3><p>Fica na gaveta, notifica em background.</p></div>
+      <button class="btn-install" onclick="promptInstall()">Instalar</button>
     </div>
 
-    <div id="notifBanner" style="display:none" class="permission-banner">
-      <div class="icon">🔔</div>
-      <div>
-        <h3>Ativar notificações</h3>
-        <p>Permita notificações para ser alertado quando o preço cair — mesmo com o app fechado.</p>
-        <button class="btn-allow" onclick="requestNotifPermission()">Permitir notificações</button>
-      </div>
+    <div id="notifBanner" style="display:none" class="notif-banner">
+      <h3>🔔 Ativar notificações</h3>
+      <p>Receba alertas quando o preço cair — mesmo com o app fechado.</p>
+      <button class="btn-allow" onclick="askNotif()">Permitir notificações</button>
     </div>
 
-    <div id="productsList"></div>
+    <div id="list"></div>
   </div>
 
-  <!-- PAGE: Adicionar -->
-  <div class="page" id="page-add">
+  <!-- Adicionar -->
+  <div class="page" id="pg-add">
     <div class="card">
-      <div class="card-header"><h2>➕ Novo produto</h2></div>
+      <div class="card-head">➕ Novo produto</div>
       <div class="card-body">
-        <div class="form-group">
-          <label class="form-label">Nome do produto</label>
-          <input class="form-input" id="addName" placeholder="iPhone 17, PS5, Galaxy S25..." maxlength="60">
+        <div class="fgroup">
+          <label class="flabel">Nome</label>
+          <input class="finput" id="fName" placeholder="iPhone 17, PS5, Galaxy S25..." maxlength="60">
         </div>
-        <div class="form-group">
-          <label class="form-label">Termo de busca (seja específico)</label>
-          <input class="form-input" id="addQuery" placeholder="iPhone 17 256GB, PlayStation 5 Slim..." maxlength="100">
+        <div class="fgroup">
+          <label class="flabel">Termo de busca (seja específico)</label>
+          <input class="finput" id="fQuery" placeholder="iPhone 17 256GB, PlayStation 5 Slim...">
         </div>
-        <div class="form-group">
-          <label class="form-label">Alertar quando o preço for abaixo de</label>
-          <div class="input-row">
-            <div class="input-prefix">R$</div>
-            <input class="form-input" id="addAlertPrice" type="number" placeholder="5500" min="1" max="999999">
+        <div class="fgroup">
+          <label class="flabel">Alertar abaixo de</label>
+          <div class="prefix-row">
+            <div class="prefix">R$</div>
+            <input class="finput" id="fPrice" type="number" placeholder="5500" min="1">
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Verificar a cada</label>
-          <div class="interval-grid" id="intervalGrid">
-            <div class="interval-opt" data-val="30" onclick="selectInterval(30)"><div class="val">30</div>min</div>
-            <div class="interval-opt selected" data-val="60" onclick="selectInterval(60)"><div class="val">1</div>hora</div>
-            <div class="interval-opt" data-val="180" onclick="selectInterval(180)"><div class="val">3</div>horas</div>
-            <div class="interval-opt" data-val="360" onclick="selectInterval(360)"><div class="val">6</div>horas</div>
-            <div class="interval-opt" data-val="720" onclick="selectInterval(720)"><div class="val">12</div>horas</div>
-            <div class="interval-opt" data-val="1440" onclick="selectInterval(1440)"><div class="val">24</div>horas</div>
+        <div class="fgroup">
+          <label class="flabel">Verificar a cada</label>
+          <div class="interval-grid">
+            <div class="iopt" data-v="30" onclick="pickInterval(30)"><div class="v">30</div>min</div>
+            <div class="iopt sel" data-v="60" onclick="pickInterval(60)"><div class="v">1</div>hora</div>
+            <div class="iopt" data-v="180" onclick="pickInterval(180)"><div class="v">3</div>horas</div>
+            <div class="iopt" data-v="360" onclick="pickInterval(360)"><div class="v">6</div>horas</div>
+            <div class="iopt" data-v="720" onclick="pickInterval(720)"><div class="v">12</div>horas</div>
+            <div class="iopt" data-v="1440" onclick="pickInterval(1440)"><div class="v">24</div>horas</div>
           </div>
-          <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px" id="usageEstimate">~30 buscas/mês • plano grátis dá 100/mês</p>
+          <div class="hint" id="usageHint">~720 buscas/mês • grátis = 100/mês</div>
         </div>
-        <button class="btn-primary" id="btnAdd" onclick="addProduct()">Adicionar produto</button>
+        <button class="btn-full" id="btnSave" onclick="saveProduct()">Adicionar produto</button>
       </div>
     </div>
   </div>
 
-  <!-- PAGE: Configurações -->
-  <div class="page" id="page-settings">
+  <!-- Configurações -->
+  <div class="page" id="pg-cfg">
+
     <div class="card">
-      <div class="card-header"><h2>🔑 API de Busca</h2></div>
+      <div class="card-head">🔑 API Key (SerpAPI)</div>
       <div class="card-body">
-        <div class="form-group">
-          <label class="form-label">SerpAPI Key</label>
-          <div class="api-input-row">
-            <input class="form-input" type="password" id="apiKeyInputSettings" placeholder="••••••••••••••••" autocomplete="off">
-            <button onclick="saveApiKeyFromSettings()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:11px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase">Salvar</button>
+        <div class="row">
+          <input class="inp finput" type="password" id="keyInputCfg" placeholder="Nova API Key..." autocomplete="off" spellcheck="false">
+          <button class="btn-sm" onclick="saveKeyCfg()">Salvar</button>
+        </div>
+        <div class="api-msg" id="keyMsgCfg"></div>
+        <div id="usageWrap" style="display:none;margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">
+            <span id="usedLbl">—</span><span id="leftLbl">—</span>
           </div>
-          <div class="api-status" id="apiKeyStatusSettings"></div>
-        </div>
-        <div id="usageInfo" style="display:none">
-          <label class="form-label">Uso este mês</label>
-          <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">
-            <span id="usageCurrent">—</span>
-            <span id="usageTotal">—</span>
-          </div>
-          <div class="usage-bar"><div class="usage-bar-fill" id="usageBarFill" style="width:0%"></div></div>
+          <div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%"></div></div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>⚙️ Notificações</h2></div>
-      <div class="settings-row">
-        <div>
-          <div class="settings-label">Permissão</div>
-          <div class="settings-sub" id="notifStatus">Verificando...</div>
-        </div>
-        <button class="toggle" id="notifToggle" onclick="toggleNotifications()"></button>
+      <div class="card-head">⚙️ Notificações</div>
+      <div class="srow">
+        <div><div class="srow-label">Permissão</div><div class="srow-sub" id="notifSub">—</div></div>
+        <button class="toggle" id="notifToggle" onclick="toggleNotif()"></button>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>🛡️ Lojas confiáveis monitoradas</h2></div>
-      <div class="card-body" style="padding:8px 16px 14px">
-        <div style="display:flex;flex-direction:column;gap:0">
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">📦 Amazon Brasil <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🛍️ Magazine Luiza <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🔴 Americanas <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent)">✓ Bom</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🟡 Casas Bahia <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent)">✓ Bom</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">⚡ Fast Shop <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">🍎 Apple Store BR <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Oficial</span></div>
-        </div>
-        <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">Shopee, AliExpress e OLX são ignoradas.</p>
+      <div class="card-head">🛡️ Lojas verificadas</div>
+      <div style="padding:8px 16px 14px;display:flex;flex-direction:column;gap:0">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">📦 Amazon Brasil<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🛍️ Magazine Luiza<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🔴 Americanas<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent)">✓ Bom</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">🟡 Casas Bahia<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent)">✓ Bom</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">⚡ Fast Shop<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Ótimo</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px">🍎 Apple Store BR<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">✓ Oficial</span></div>
+        <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px">Shopee, AliExpress e OLX ignorados.</p>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>📱 Sobre o app</h2></div>
-      <div class="card-body">
-        <p style="font-size:12px;color:var(--muted);line-height:1.6">
-          PriceWatch usa SerpAPI para buscar dados do Google Shopping de forma legítima (sem scraping). Suas chaves e dados ficam apenas no seu dispositivo (IndexedDB).
-        </p>
-        <button class="btn-primary" style="margin-top:12px;background:var(--purple);color:#fff" onclick="installApp()">Instalar como app</button>
+      <div class="card-head">📱 Instalar como app</div>
+      <div class="card-body" style="font-size:12px;color:var(--muted);line-height:1.6">
+        No Chrome Android: toque em <strong style="color:var(--text)">⋮</strong> → <strong style="color:var(--text)">"Adicionar à tela inicial"</strong>.
+        <button class="btn-full" style="margin-top:12px;background:var(--purple);color:#fff" onclick="promptInstall()">Instalar agora</button>
       </div>
     </div>
+
   </div>
-
 </div>
 
 <nav class="bottomnav">
-  <button class="nav-item active" id="navProducts" onclick="showPage('products',this)">
-    <div class="nav-icon">📋</div><span>Produtos</span>
-  </button>
-  <button class="nav-item" id="navAdd" onclick="showPage('add',this)">
-    <div class="nav-icon">➕</div><span>Adicionar</span>
-  </button>
-  <button class="nav-item" id="navSettings" onclick="showPage('settings',this)">
-    <div class="nav-icon">⚙️</div><span>Config</span>
-  </button>
+  <button class="nav-btn active" id="nb-list" onclick="goto('list',this)"><div class="ico">📋</div><span>Produtos</span></button>
+  <button class="nav-btn" id="nb-add"  onclick="goto('add',this)"><div class="ico">➕</div><span>Adicionar</span></button>
+  <button class="nav-btn" id="nb-cfg"  onclick="goto('cfg',this)"><div class="ico">⚙️</div><span>Config</span></button>
 </nav>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Globals ──────────────────────────────────────────────
-let products = [];
-let apiKey = null;
-let selectedInterval = 60;
-let deferredInstall = null;
-let checkTimers = {};
+// ─────────────────────────────────────────────
+// IMPORTANT: after deploying to Vercel, replace
+// the two lines below with your actual Vercel URL
+// e.g. https://pricewatch-xyz.vercel.app
+// ─────────────────────────────────────────────
+const BASE_URL = window.location.origin.includes('localhost') || window.location.origin.startsWith('file:')
+  ? 'https://REPLACE_WITH_YOUR_VERCEL_URL'   // ← change this after deploy
+  : window.location.origin;
 
-const STORE_INFO = {
-  amazon:     { name:'Amazon Brasil',  emoji:'📦' },
-  magalu:     { name:'Magazine Luiza', emoji:'🛍️' },
-  americanas: { name:'Americanas',     emoji:'🔴' },
-  casasbahia: { name:'Casas Bahia',    emoji:'🟡' },
-  fastshop:   { name:'Fast Shop',      emoji:'⚡' },
-  apple:      { name:'Apple Store BR', emoji:'🍎' },
-  submarino:  { name:'Submarino',      emoji:'🔵' },
+// ── State ────────────────────────────────────
+let products = [], apiKey = null, selInterval = 60;
+let deferredInstall = null, timers = {};
+
+const SI = {
+  amazon:     { name:'Amazon',       emoji:'📦' },
+  magalu:     { name:'Mag. Luiza',   emoji:'🛍️' },
+  americanas: { name:'Americanas',   emoji:'🔴' },
+  casasbahia: { name:'Casas Bahia',  emoji:'🟡' },
+  fastshop:   { name:'Fast Shop',    emoji:'⚡' },
+  apple:      { name:'Apple BR',     emoji:'🍎' },
+  submarino:  { name:'Submarino',    emoji:'🔵' },
+};
+const TRUSTED = Object.keys(SI).concat(['magazineluiza']);
+const fmt = n => 'R$ ' + Number(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+// ── DB ───────────────────────────────────────
+const openDB = () => new Promise((res,rej) => {
+  const r = indexedDB.open('PriceWatchDB',3);
+  r.onupgradeneeded = e => {
+    const db = e.target.result;
+    if (!db.objectStoreNames.contains('products')) db.createObjectStore('products',{keyPath:'id'});
+    if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings',{keyPath:'key'});
+  };
+  r.onsuccess = e => res(e.target.result);
+  r.onerror = rej;
+});
+const dbAll  = async s => { const db=await openDB(); return new Promise((res,rej)=>{ const r=db.transaction(s,'readonly').objectStore(s).getAll(); r.onsuccess=e=>res(e.target.result||[]); r.onerror=rej; }); };
+const dbPut  = async (s,o) => { const db=await openDB(); return new Promise((res,rej)=>{ const r=db.transaction(s,'readwrite').objectStore(s).put(o); r.onsuccess=()=>res(); r.onerror=rej; }); };
+const dbDel  = async (s,k) => { const db=await openDB(); return new Promise((res,rej)=>{ const r=db.transaction(s,'readwrite').objectStore(s).delete(k); r.onsuccess=()=>res(); r.onerror=rej; }); };
+
+// ── Toast ────────────────────────────────────
+let tt;
+const toast = (msg,type='') => { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),3200); };
+
+// ── Nav ──────────────────────────────────────
+const goto = (name, el) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  document.getElementById('pg-'+name).classList.add('active');
+  el.classList.add('active');
 };
 
-const fmt = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits:0, maximumFractionDigits:0 });
+// ── Pill ─────────────────────────────────────
+const setPill = (state, txt, sub) => {
+  const pill = document.getElementById('pill');
+  pill.className = 'pill ' + state;
+  document.getElementById('pillTxt').textContent = txt;
+  document.getElementById('sub').textContent = sub;
+};
 
-// ── DB helpers ────────────────────────────────────────────
-function openDB() {
-  return new Promise((res, rej) => {
-    const r = indexedDB.open('PriceWatchDB', 2);
-    r.onupgradeneeded = e => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('products')) db.createObjectStore('products', { keyPath:'id' });
-      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath:'key' });
-    };
-    r.onsuccess = e => res(e.target.result);
-    r.onerror = rej;
-  });
-}
-async function dbAll(store) {
-  const db = await openDB();
-  return new Promise((res, rej) => {
-    const r = db.transaction(store,'readonly').objectStore(store).getAll();
-    r.onsuccess = e => res(e.target.result || []);
-    r.onerror = rej;
-  });
-}
-async function dbPut(store, obj) {
-  const db = await openDB();
-  return new Promise((res, rej) => {
-    const r = db.transaction(store,'readwrite').objectStore(store).put(obj);
-    r.onsuccess = () => res();
-    r.onerror = rej;
-  });
-}
-async function dbDel(store, key) {
-  const db = await openDB();
-  return new Promise((res, rej) => {
-    const r = db.transaction(store,'readwrite').objectStore(store).delete(key);
-    r.onsuccess = () => res();
-    r.onerror = rej;
-  });
-}
-
-// ── Toast ────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ── Pages ────────────────────────────────────────────────
-function showPage(name, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  el.classList.add('active');
-}
-
-// ── API Key ──────────────────────────────────────────────
-async function saveApiKey() {
-  const v = document.getElementById('apiKeyInput').value.trim();
-  await saveApiKeyValue(v, 'apiKeyStatus');
-  document.getElementById('apiKeyInput').value = '';
-}
-async function saveApiKeyFromSettings() {
-  const v = document.getElementById('apiKeyInputSettings').value.trim();
-  await saveApiKeyValue(v, 'apiKeyStatusSettings');
-  document.getElementById('apiKeyInputSettings').value = '';
-}
-
-async function saveApiKeyValue(v, statusId) {
-  const status = document.getElementById(statusId);
-  if (!v) { status.className='api-status err'; status.textContent='✗ Cole sua API Key'; return; }
-
-  status.className='api-status'; status.textContent='Validando...'; status.style.color='var(--yellow)';
-
+// ── API Key ──────────────────────────────────
+const validateAndSave = async (key, msgId) => {
+  const el = document.getElementById(msgId);
+  if (!key) { el.className='api-msg err'; el.textContent='✗ Cole sua API Key'; return false; }
+  el.className='api-msg'; el.textContent='Validando...'; el.style.color='var(--yellow)';
   try {
-    const r = await fetch(`https://serpapi.com/account?api_key=${v}`);
+    const r = await fetch(`${BASE_URL}/api/account?api_key=${encodeURIComponent(key)}`);
     const j = await r.json();
     if (j.error) throw new Error(j.error);
-
-    apiKey = v;
-    await dbPut('settings', { key:'serpApiKey', value:v });
-
-    const left = j.searches_left || j.plan_searches_left || 0;
-    const total = j.this_month_usage_total || j.searches_per_month || 100;
-
-    status.className='api-status ok';
-    status.textContent = `✓ API conectada — ${left} buscas restantes`;
-
-    document.getElementById('apiSetupCard').style.display = 'none';
-    updateStatusPill();
-    renderUsage(j);
-    showToast('✅ API configurada com sucesso!', 'success');
-  } catch (err) {
-    status.className='api-status err';
-    status.textContent = '✗ ' + (err.message || 'API Key inválida');
+    apiKey = key;
+    await dbPut('settings',{key:'serpApiKey',value:key});
+    const left = j.searches_left ?? j.plan_searches_left ?? '?';
+    el.className='api-msg ok'; el.textContent=`✓ Conectado — ${left} buscas restantes`;
+    document.getElementById('setupCard').style.display='none';
+    syncUsage(j); setPill('ok', products.length+' monitorado'+(products.length!==1?'s':''), 'API conectada');
+    if (!products.length) setPill('ok','API conectada','Adicione produtos em ➕');
+    return true;
+  } catch(e) {
+    el.className='api-msg err'; el.textContent='✗ '+(e.message||'Erro ao validar'); return false;
   }
-}
+};
 
-async function checkApiUsage() {
+const saveKey    = () => validateAndSave(document.getElementById('keyInput').value.trim(), 'keyMsg').then(ok=>ok&&(document.getElementById('keyInput').value=''));
+const saveKeyCfg = () => validateAndSave(document.getElementById('keyInputCfg').value.trim(),'keyMsgCfg').then(ok=>ok&&(document.getElementById('keyInputCfg').value=''));
+
+const syncUsage = j => {
+  const left  = j.searches_left ?? j.plan_searches_left ?? 0;
+  const total = j.searches_per_month ?? 100;
+  const used  = total - left;
+  const pct   = total>0 ? (used/total)*100 : 0;
+  document.getElementById('usageWrap').style.display='block';
+  document.getElementById('usedLbl').textContent=`${used} usadas`;
+  document.getElementById('leftLbl').textContent=`${left} restantes`;
+  const fill=document.getElementById('usageFill');
+  fill.style.width=pct+'%';
+  fill.className='usage-fill'+(pct>80?' warn':'');
+};
+
+const refreshUsage = async () => {
   if (!apiKey) return;
-  try {
-    const r = await fetch(`https://serpapi.com/account?api_key=${apiKey}`);
-    const j = await r.json();
-    if (!j.error) renderUsage(j);
-  } catch {}
-}
+  try { const r=await fetch(`${BASE_URL}/api/account?api_key=${encodeURIComponent(apiKey)}`); const j=await r.json(); if(!j.error) syncUsage(j); } catch {}
+};
 
-function renderUsage(account) {
-  const left = account.searches_left || account.plan_searches_left || 0;
-  const total = account.searches_per_month || account.plan_monthly_searches_left || 100;
-  const used = total - left;
-  const pct = total > 0 ? (used/total)*100 : 0;
-  document.getElementById('usageInfo').style.display = 'block';
-  document.getElementById('usageCurrent').textContent = `${used} usadas`;
-  document.getElementById('usageTotal').textContent = `${left} restantes`;
-  const fill = document.getElementById('usageBarFill');
-  fill.style.width = pct + '%';
-  fill.className = 'usage-bar-fill' + (pct > 80 ? ' warn' : '');
-}
+// ── Interval ─────────────────────────────────
+const pickInterval = v => {
+  selInterval = v;
+  document.querySelectorAll('.iopt').forEach(el=>el.classList.toggle('sel', parseInt(el.dataset.v)===v));
+  const pm = Math.round((30*24*60)/v);
+  document.getElementById('usageHint').textContent=`~${pm} buscas/mês • grátis = 100/mês`;
+};
 
-// ── Interval ─────────────────────────────────────────────
-function selectInterval(val) {
-  selectedInterval = val;
-  document.querySelectorAll('.interval-opt').forEach(el => {
-    el.classList.toggle('selected', parseInt(el.dataset.val) === val);
-  });
-  updateUsageEstimate();
-}
-function updateUsageEstimate() {
-  const perMonth = Math.round((30 * 24 * 60) / selectedInterval);
-  const totalAll = products.reduce((acc, p) => acc + Math.round((30 * 24 * 60) / p.interval), perMonth);
-  document.getElementById('usageEstimate').textContent =
-    `~${perMonth} buscas/mês p/ este produto (total: ~${totalAll}/mês)`;
-}
-
-// ── Render products ──────────────────────────────────────
-function renderProducts() {
-  const list = document.getElementById('productsList');
+// ── Render ───────────────────────────────────
+const render = () => {
+  const el = document.getElementById('list');
   if (!products.length) {
-    if (apiKey) {
-      list.innerHTML = `<div class="empty"><div class="icon">🔍</div><h3>Nenhum produto monitorado</h3><p>Toque em ➕ Adicionar para começar.</p></div>`;
-    } else {
-      list.innerHTML = '';
-    }
-    updateStatusPill();
+    el.innerHTML = apiKey
+      ? `<div class="empty"><div class="ico">🔍</div><h3>Nenhum produto</h3><p>Toque em ➕ para monitorar qualquer produto.</p></div>`
+      : '';
     return;
   }
-
-  list.innerHTML = products.map(p => {
-    const hasOffers = p.lastOffers?.length > 0;
-    const isChecking = p.checking;
-    const cls = isChecking ? 'checking' : (p.lastOffers?.some(o => o.price <= p.alertPrice) ? 'has-alert' : '');
+  el.innerHTML = products.map(p => {
+    const cls = p.loading ? 'loading' : (p.lastOffers?.some(o=>o.price<=p.alertPrice) ? 'alert-on' : '');
+    const lowest = p.lastOffers?.length ? Math.min(...p.lastOffers.map(o=>o.price)) : null;
     const lastStr = p.lastChecked ? new Date(p.lastChecked).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : 'nunca';
-    const lowest = hasOffers ? Math.min(...p.lastOffers.map(o => o.price)) : null;
-    const intervalStr = p.interval < 60 ? p.interval+'min' : (p.interval/60)+'h';
+    const intStr = p.interval<60 ? p.interval+'min' : (p.interval/60)+'h';
 
-    const offersHtml = isChecking
-      ? `<div class="checking-row"><span class="spin">⟳</span> Verificando preços...</div>`
-      : hasOffers
-        ? p.lastOffers.sort((a,b)=>a.price-b.price).slice(0,5).map(o => {
-            const si = STORE_INFO[o.storeId] || { name:o.store, emoji:'🏪' };
-            const isMin = o.price === lowest;
-            return `<a class="offer-item" href="${o.url}" target="_blank" rel="noopener">
-              <span class="offer-store">${si.emoji} ${si.name}</span>
-              <span style="display:flex;align-items:center">
-                <span class="offer-price ${isMin?'best':''}">${fmt(o.price)}</span>
+    const offersHtml = p.loading
+      ? `<div class="loading-row"><span class="spin">⟳</span> Buscando preços...</div>`
+      : p.lastOffers?.length
+        ? p.lastOffers.sort((a,b)=>a.price-b.price).slice(0,5).map(o=>{
+            const s = SI[o.storeId]||{name:o.store||o.storeId,emoji:'🏪'};
+            const best = o.price===lowest;
+            return `<a class="offer-row" href="${o.url}" target="_blank" rel="noopener">
+              <span class="offer-left">${s.emoji} ${s.name}</span>
+              <div class="offer-right">
+                <span class="offer-price${best?' best':''}">${fmt(o.price)}</span>
                 <span class="offer-link">↗</span>
-              </span>
+              </div>
             </a>`;
           }).join('')
-        : `<div class="no-offers">Toque em ▶ para verificar agora</div>`;
+        : `<div class="no-data">Toque em ▶ para verificar agora</div>`;
 
-    return `
-      <div class="product-card ${cls}">
-        <div class="product-top">
-          <div class="product-name">${p.name}</div>
-          <div class="product-actions">
-            <button class="btn-icon" onclick="checkNow('${p.id}')" title="Verificar">▶</button>
-            <button class="btn-icon danger" onclick="deleteProduct('${p.id}')" title="Remover">🗑</button>
-          </div>
+    return `<div class="pcard ${cls}">
+      <div class="pcard-top">
+        <div class="pcard-name">${p.name}</div>
+        <div class="pcard-btns">
+          <button class="icon-btn" onclick="check('${p.id}')">▶</button>
+          <button class="icon-btn" onclick="remove('${p.id}')">🗑</button>
         </div>
-        <div class="product-meta">
-          <span class="meta-chip">🔄 ${intervalStr}</span>
-          <span class="meta-chip alert-price">🔔 abaixo de ${fmt(p.alertPrice)}</span>
-          ${lowest ? `<span class="meta-chip lowest">↓ menor: ${fmt(lowest)}</span>` : ''}
-          <span class="meta-chip">🕐 ${lastStr}</span>
-        </div>
-        <div class="product-offers">${offersHtml}</div>
-      </div>`;
+      </div>
+      <div class="pcard-meta">
+        <span class="chip">🔄 ${intStr}</span>
+        <span class="chip y">🔔 abaixo de ${fmt(p.alertPrice)}</span>
+        ${lowest?`<span class="chip g">↓ ${fmt(lowest)}</span>`:''}
+        <span class="chip">🕐 ${lastStr}</span>
+      </div>
+      <div class="offers">${offersHtml}</div>
+    </div>`;
   }).join('');
 
-  updateStatusPill();
-}
+  const n = products.filter(p=>!p.paused).length;
+  if (apiKey) setPill(n>0?'ok':'off', n>0?`${n} ativo${n>1?'s':''}` : 'Inativo', n>0?`Monitorando ${n} produto${n>1?'s':''}`:'Adicione produtos em ➕');
+};
 
-function updateStatusPill() {
-  const pill = document.getElementById('statusPill');
-  const txt = document.getElementById('statusPillText');
-  const sub = document.getElementById('topbarSub');
-  if (!apiKey) {
-    pill.className = 'status-pill warn';
-    txt.textContent = 'Configurar API';
-    sub.textContent = 'Configure a API para começar';
-    return;
-  }
-  const active = products.filter(p => !p.paused).length;
-  if (active > 0) {
-    pill.className = 'status-pill';
-    txt.textContent = `${active} ativo${active>1?'s':''}`;
-    sub.textContent = `Monitorando ${active} produto${active>1?'s':''}`;
-  } else {
-    pill.className = 'status-pill inactive';
-    txt.textContent = 'Inativo';
-    sub.textContent = 'Adicione produtos para monitorar';
-  }
-}
+// ── Save product ─────────────────────────────
+const saveProduct = async () => {
+  if (!apiKey) { toast('⚠️ Configure a API Key primeiro','err'); return; }
+  const name  = document.getElementById('fName').value.trim();
+  const query = document.getElementById('fQuery').value.trim();
+  const price = parseFloat(document.getElementById('fPrice').value);
+  if (!name)  { toast('⚠️ Digite o nome','err'); return; }
+  if (!query) { toast('⚠️ Digite o termo de busca','err'); return; }
+  if (!price) { toast('⚠️ Digite o preço de alerta','err'); return; }
 
-// ── Add product ──────────────────────────────────────────
-async function addProduct() {
-  if (!apiKey) { showToast('⚠️ Configure a API primeiro','error'); return; }
+  const p = { id:Date.now().toString(), name, query, alertPrice:price, interval:selInterval, createdAt:Date.now(), lastChecked:null, lastOffers:[], lastLowestPrice:null, loading:false, paused:false };
+  await dbPut('products',p);
+  products.push(p);
+  render();
+  document.getElementById('fName').value='';
+  document.getElementById('fQuery').value='';
+  document.getElementById('fPrice').value='';
+  toast(`✅ "${name}" adicionado!`,'ok');
+  document.getElementById('nb-list').click();
+  schedule(p);
+  setTimeout(()=>check(p.id),600);
+};
 
-  const name = document.getElementById('addName').value.trim();
-  const query = document.getElementById('addQuery').value.trim();
-  const alertPrice = parseFloat(document.getElementById('addAlertPrice').value);
-
-  if (!name) { showToast('⚠️ Digite o nome','error'); return; }
-  if (!query) { showToast('⚠️ Digite o termo de busca','error'); return; }
-  if (!alertPrice || alertPrice < 1) { showToast('⚠️ Digite o preço','error'); return; }
-
-  const product = {
-    id: Date.now().toString(), name, query, alertPrice,
-    interval: selectedInterval, createdAt: Date.now(),
-    lastChecked: null, lastOffers: [], lastLowestPrice: null,
-    checking: false, paused: false,
-  };
-
-  await dbPut('products', product);
-  products.push(product);
-  renderProducts();
-
-  document.getElementById('addName').value = '';
-  document.getElementById('addQuery').value = '';
-  document.getElementById('addAlertPrice').value = '';
-
-  showToast(`✅ "${name}" adicionado!`, 'success');
-  document.getElementById('navProducts').click();
-  scheduleChecks(product);
-  setTimeout(() => checkNow(product.id), 800);
-}
-
-async function deleteProduct(id) {
+const remove = async id => {
   if (!confirm('Remover este produto?')) return;
-  await dbDel('products', id);
-  products = products.filter(p => p.id !== id);
-  clearTimeout(checkTimers[id]);
-  delete checkTimers[id];
-  renderProducts();
-  showToast('🗑️ Removido');
-}
+  await dbDel('products',id);
+  products=products.filter(p=>p.id!==id);
+  clearTimeout(timers[id]); delete timers[id];
+  render(); toast('🗑️ Removido');
+};
 
-// ── Check via SerpAPI ────────────────────────────────────
-async function checkNow(id) {
-  if (!apiKey) { showToast('⚠️ Configure a API primeiro','error'); return; }
-  const product = products.find(p => p.id === id);
-  if (!product || product.checking) return;
+// ── Fetch prices via backend proxy ────────────────────
+const TRUSTED_IDS = Object.keys(SI).concat(['magazineluiza']);
 
-  product.checking = true;
-  renderProducts();
-
-  try {
-    const offers = await fetchPrices(product.query);
-    if (!offers.length) {
-      product.checking = false;
-      renderProducts();
-      showToast(`Nenhuma oferta de loja confiável encontrada para "${product.name}"`, 'error');
-      return;
-    }
-
-    const prevLowest = product.lastLowestPrice || Infinity;
-    const lowest = Math.min(...offers.map(o => o.price));
-
-    product.lastOffers = offers;
-    product.lastChecked = Date.now();
-    product.lastLowestPrice = lowest;
-    product.checking = false;
-
-    await dbPut('products', product);
-    renderProducts();
-
-    if (lowest <= product.alertPrice) {
-      const dropped = prevLowest !== Infinity && lowest < prevLowest;
-      sendNotification(product, offers, lowest, dropped);
-    }
-    showToast(`✓ ${product.name}: menor preço ${fmt(lowest)}`, 'success');
-    checkApiUsage();
-  } catch (err) {
-    product.checking = false;
-    renderProducts();
-    showToast('⚠️ ' + err.message, 'error');
-    console.error(err);
-  }
-}
-
-const TRUSTED_STORES = ['amazon', 'magazineluiza', 'magalu', 'americanas', 'casasbahia', 'fastshop', 'apple', 'submarino'];
-
-async function fetchPrices(query) {
-  const url = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&gl=br&hl=pt-br&api_key=${apiKey}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Erro na API: ' + res.status);
-  const data = await res.json();
+const fetchPrices = async query => {
+  const url = `${BASE_URL}/api/search?q=${encodeURIComponent(query)}&api_key=${encodeURIComponent(apiKey)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Erro HTTP ${r.status}`);
+  const data = await r.json();
   if (data.error) throw new Error(data.error);
 
-  const items = data.shopping_results || data.inline_shopping_results || [];
-
+  const items = data.shopping_results || [];
   return items.map(it => {
-    const price = it.extracted_price || parseFloat(String(it.price||'').replace(/[^\d,.]/g,'').replace(/\./g,'').replace(',','.'));
-    const source = (it.source || it.seller || '').toLowerCase();
-    const link = it.product_link || it.link || '';
-
+    const price = it.extracted_price || parseFloat(String(it.price||'0').replace(/[^\d,.]/g,'').replace(/\./g,'').replace(',','.'));
+    const source = (it.source||it.seller||'').toLowerCase();
+    const link   = it.product_link||it.link||'';
     let storeId = null;
-    for (const t of TRUSTED_STORES) {
-      if (source.includes(t) || link.toLowerCase().includes(t)) {
-        storeId = t === 'magazineluiza' ? 'magalu' : t;
-        break;
-      }
+    for (const t of TRUSTED_IDS) {
+      if (source.includes(t)||link.toLowerCase().includes(t)) { storeId=t==='magazineluiza'?'magalu':t; break; }
     }
+    return { price, store:it.source||it.seller||'Loja', storeId, url:link, desc:it.title||'' };
+  }).filter(o => o.price>0 && o.storeId && o.url);
+};
 
-    return { price, store: it.source||it.seller||'Loja', storeId, url: link, desc: it.title||'' };
-  }).filter(o => o.price > 0 && o.storeId && o.url);
-}
-
-// ── Notifications ────────────────────────────────────────
-async function requestNotifPermission() {
-  const perm = await Notification.requestPermission();
-  updateNotifUI();
-  if (perm === 'granted') {
-    document.getElementById('notifBanner').style.display = 'none';
-    showToast('🔔 Notificações ativadas!', 'success');
-  } else {
-    showToast('⚠️ Notificações bloqueadas', 'error');
+// ── Check ────────────────────────────────────
+const check = async id => {
+  if (!apiKey) { toast('⚠️ Configure a API Key primeiro','err'); return; }
+  const p = products.find(x=>x.id===id);
+  if (!p||p.loading) return;
+  p.loading=true; render();
+  try {
+    const offers = await fetchPrices(p.query);
+    const lowest = offers.length ? Math.min(...offers.map(o=>o.price)) : null;
+    const prev   = p.lastLowestPrice||Infinity;
+    Object.assign(p,{loading:false, lastChecked:Date.now(), lastOffers:offers, lastLowestPrice:lowest||p.lastLowestPrice});
+    await dbPut('products',p);
+    render();
+    if (lowest && lowest<=p.alertPrice) notify(p,offers,lowest,prev!==Infinity&&lowest<prev);
+    toast(offers.length ? `✓ ${p.name}: menor ${fmt(lowest)}`:`Nenhuma oferta confiável encontrada`, offers.length?'ok':'err');
+    refreshUsage();
+  } catch(e) {
+    p.loading=false; render();
+    toast('⚠️ '+e.message,'err');
   }
-}
+};
 
-function sendNotification(product, offers, lowestPrice, dropped) {
-  if (Notification.permission !== 'granted') return;
-  const best = offers.sort((a,b) => a.price - b.price)[0];
-  const title = `🔔 ${product.name} abaixo de R$${product.alertPrice.toLocaleString('pt-BR')}!`;
-  const body = `R$ ${lowestPrice.toLocaleString('pt-BR')} na ${best.store}${dropped ? ' (preço caiu!)' : ''}`;
-
+// ── Notify ───────────────────────────────────
+const notify = (p, offers, lowest, dropped) => {
+  if (Notification.permission!=='granted') return;
+  const best = [...offers].sort((a,b)=>a.price-b.price)[0];
+  const title = `🔔 ${p.name} abaixo de R$${p.alertPrice.toLocaleString('pt-BR')}!`;
+  const body  = `R$ ${lowest.toLocaleString('pt-BR')} na ${best.store}${dropped?' (caiu de preço!)':''}`;
   if (navigator.serviceWorker?.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type:'SHOW_NOTIFICATION', title, body, url: best.url, tag:`price-${product.id}`
-    });
+    navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIFICATION',title,body,url:best.url,tag:`pw-${p.id}`});
   } else {
-    new Notification(title, { body, icon:'./icon-192.png', tag:`price-${product.id}`, data:{ url: best.url } });
+    new Notification(title,{body,icon:'./icon-192.png',tag:`pw-${p.id}`});
   }
-}
+};
 
-function updateNotifUI() {
-  const perm = Notification.permission;
-  const toggle = document.getElementById('notifToggle');
-  const status = document.getElementById('notifStatus');
-  if (perm === 'granted') {
-    toggle.className = 'toggle on';
-    status.textContent = 'Ativadas';
-  } else if (perm === 'denied') {
-    toggle.className = 'toggle';
-    status.textContent = 'Bloqueadas no sistema';
-  } else {
-    toggle.className = 'toggle';
-    status.textContent = 'Toque para ativar';
-  }
-}
+const askNotif = async () => {
+  const r = await Notification.requestPermission();
+  updateNotifUI();
+  if (r==='granted') { document.getElementById('notifBanner').style.display='none'; toast('🔔 Notificações ativadas!','ok'); }
+  else toast('Notificações bloqueadas','err');
+};
+const toggleNotif = () => Notification.permission==='granted' ? toast('Para desativar: Configurações do Android → Aplicativos') : askNotif();
+const updateNotifUI = () => {
+  const p=Notification.permission;
+  document.getElementById('notifToggle').className='toggle'+(p==='granted'?' on':'');
+  document.getElementById('notifSub').textContent = p==='granted'?'Ativadas':p==='denied'?'Bloqueadas no sistema':'Toque para ativar';
+};
 
-function toggleNotifications() {
-  if (Notification.permission === 'granted') {
-    showToast('Para desativar, use as configurações do Android');
-  } else {
-    requestNotifPermission();
-  }
-}
+// ── Schedule ─────────────────────────────────
+const schedule = p => {
+  clearTimeout(timers[p.id]);
+  timers[p.id]=setTimeout(async()=>{
+    await check(p.id);
+    const up=products.find(x=>x.id===p.id);
+    if (up) schedule(up);
+  }, p.interval*60*1000);
+};
 
-// ── Schedule periodic checks ─────────────────────────────
-function scheduleChecks(product) {
-  clearTimeout(checkTimers[product.id]);
-  const ms = product.interval * 60 * 1000;
-  checkTimers[product.id] = setTimeout(async () => {
-    await checkNow(product.id);
-    const updated = products.find(p => p.id === product.id);
-    if (updated) scheduleChecks(updated);
-  }, ms);
-}
-
-// ── PWA install ──────────────────────────────────────────
-function installApp() {
+// ── Install ──────────────────────────────────
+const promptInstall = () => {
   if (deferredInstall) {
     deferredInstall.prompt();
-    deferredInstall.userChoice.then(r => {
-      if (r.outcome === 'accepted') showToast('✅ App instalado!', 'success');
-      deferredInstall = null;
-      document.getElementById('installBanner').style.display = 'none';
+    deferredInstall.userChoice.then(r=>{
+      if (r.outcome==='accepted') toast('✅ App instalado!','ok');
+      deferredInstall=null; document.getElementById('installBanner').style.display='none';
     });
-  } else {
-    showToast('No Chrome: ⋮ → "Adicionar à tela inicial"');
-  }
-}
+  } else toast('No Chrome: ⋮ → "Adicionar à tela inicial"');
+};
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; document.getElementById('installBanner').style.display='flex'; });
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBanner').style.display='none'; toast('✅ Instalado!','ok'); });
 
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstall = e;
-  document.getElementById('installBanner').style.display = 'flex';
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').style.display = 'none';
-  showToast('✅ App instalado!', 'success');
-});
-
-// ── Service Worker ───────────────────────────────────────
-async function registerSW() {
+// ── SW ───────────────────────────────────────
+const registerSW = async () => {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('./sw.js');
     if ('periodicSync' in reg) {
       try {
-        const status = await navigator.permissions.query({ name:'periodic-background-sync' });
-        if (status.state === 'granted') {
-          await reg.periodicSync.register('price-check', { minInterval: 10*60*1000 });
-        }
+        const s=await navigator.permissions.query({name:'periodic-background-sync'});
+        if (s.state==='granted') await reg.periodicSync.register('price-check',{minInterval:10*60*1000});
       } catch {}
     }
-  } catch (err) { console.warn('SW failed:', err); }
-}
+  } catch {}
+};
 
-// ── Init ─────────────────────────────────────────────────
-async function init() {
+// ── Init ─────────────────────────────────────
+(async () => {
   const settings = await dbAll('settings');
-  apiKey = settings.find(s => s.key === 'serpApiKey')?.value || null;
-
+  apiKey = settings.find(s=>s.key==='serpApiKey')?.value||null;
   products = await dbAll('products');
 
   if (!apiKey) {
-    document.getElementById('apiSetupCard').style.display = 'block';
+    document.getElementById('setupCard').style.display='block';
   } else {
-    checkApiUsage();
+    document.getElementById('setupCard').style.display='none';
+    refreshUsage();
   }
 
-  renderProducts();
+  render();
   updateNotifUI();
-  if (Notification.permission === 'default' && apiKey) {
-    document.getElementById('notifBanner').style.display = 'flex';
-  }
-
+  if (Notification.permission==='default' && apiKey) document.getElementById('notifBanner').style.display='block';
   await registerSW();
-  products.forEach(p => scheduleChecks(p));
-  updateUsageEstimate();
-}
-
-init();
+  products.forEach(schedule);
+  pickInterval(60);
+})();
 </script>
 </body>
 </html>
