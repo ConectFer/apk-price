@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00e5ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PriceWatch">
+<link rel="manifest" href="./manifest.json">
+<title>PriceWatch — Monitor de Preços</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #090c10; --surface: #0f1318; --border: #1e2530;
+  --accent: #00e5ff; --green: #00ff88; --red: #ff4d6d;
+  --yellow: #ffd166; --purple: #7b61ff;
+  --text: #e8ecf0; --muted: #5a6478; --card: #111620;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size: 36px 36px; pointer-events: none; z-index: 0;
+}
+
+/* ── Top bar ── */
+.topbar {
+  position: relative; z-index: 10;
+  background: rgba(9,12,16,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.topbar-left h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.topbar-left h1 span { color: var(--accent); }
+.topbar-left p { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 20px; padding: 5px 11px;
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--green);
+}
+.status-pill.inactive { background: rgba(90,100,120,0.1); border-color: var(--border); color: var(--muted); }
+.status-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; animation: blink 1.4s ease-in-out infinite; }
+.status-pill.inactive .status-dot { animation: none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Scrollable content ── */
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  position: relative; z-index: 1;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(80px + var(--safe-bottom));
+}
+.page { padding: 16px; display: none; }
+.page.active { display: block; }
+
+/* ── Bottom nav ── */
+.bottomnav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(9,12,16,0.97); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 4px 8px; gap: 4px; cursor: pointer;
+  transition: all 0.15s; border: none; background: none; color: var(--muted);
+  font-family: 'Syne', sans-serif;
+}
+.nav-item.active { color: var(--accent); }
+.nav-item .nav-icon { font-size: 20px; transition: transform 0.15s; }
+.nav-item.active .nav-icon { transform: translateY(-2px); }
+.nav-item span { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; margin-bottom: 12px;
+}
+.card-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.card-header h2 { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ── Product cards ── */
+.product-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.product-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+}
+.product-card.has-alert::before { background: var(--green); }
+.product-card.checking::before { background: var(--yellow); animation: blink .6s infinite; }
+
+.product-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.product-name { font-size: 15px; font-weight: 700; flex: 1; padding-right: 8px; }
+.product-actions { display: flex; gap: 6px; }
+.btn-icon {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 14px;
+  transition: all 0.15s;
+}
+.btn-icon:hover { background: rgba(255,255,255,0.08); }
+.btn-icon.danger:hover { background: rgba(255,77,109,0.15); border-color: var(--red); }
+
+.product-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.meta-chip {
+  font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px;
+  border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+  color: var(--muted);
+}
+.meta-chip.alert-price { color: var(--yellow); border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.06); }
+.meta-chip.lowest { color: var(--green); border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.06); }
+
+.product-offers { display: flex; flex-direction: column; gap: 6px; }
+.offer-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; text-decoration: none; color: inherit;
+  transition: background 0.15s;
+}
+a.offer-item:hover, a.offer-item:active { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); }
+.offer-store { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.offer-price { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
+.offer-price.best { color: var(--green); }
+.offer-link { font-size: 12px; color: var(--accent); }
+
+.no-offers { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-align: center; padding: 12px; }
+
+.checking-row {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--yellow);
+  padding: 8px 0;
+}
+.spin { animation: spin 1s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Add product form ── */
+.form-group { margin-bottom: 14px; }
+.form-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 11px 14px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 14px; outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--muted); }
+.input-row { display: flex; gap: 8px; }
+.input-prefix { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 12px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 14px; flex-shrink: 0; }
+
+.btn-primary {
+  width: 100%; background: var(--accent); color: #000; border: none;
+  border-radius: 10px; padding: 13px; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 14px; cursor: pointer; text-transform: uppercase;
+  letter-spacing: .05em; transition: all 0.2s;
+}
+.btn-primary:hover { background: #33ebff; }
+.btn-primary:disabled { background: var(--muted); cursor: not-allowed; }
+
+.store-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.store-badge {
+  font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 10px;
+  border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.store-badge.selected { border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.08); color: var(--accent); }
+
+/* ── Settings ── */
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; font-weight: 600; }
+.settings-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.toggle {
+  width: 44px; height: 24px; border-radius: 12px; border: none; cursor: pointer;
+  background: var(--border); position: relative; transition: background .2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  transition: transform .2s;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.interval-select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 10px; color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: 12px; outline: none;
+}
+
+/* ── Permission banner ── */
+.permission-banner {
+  background: rgba(123,97,255,0.1); border: 1px solid rgba(123,97,255,0.3);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.permission-banner .icon { font-size: 24px; flex-shrink: 0; }
+.permission-banner h3 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.permission-banner p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.btn-allow {
+  margin-top: 10px; background: var(--purple); color: #fff; border: none;
+  border-radius: 8px; padding: 8px 16px; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 12px; cursor: pointer; transition: all .15s;
+}
+.btn-allow:hover { background: #9080ff; }
+
+/* ── Install banner ── */
+.install-banner {
+  background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+  display: flex; gap: 12px; align-items: center;
+}
+.install-banner .icon { font-size: 28px; flex-shrink: 0; }
+.install-banner h3 { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.install-banner p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.btn-install {
+  margin-top: 8px; background: var(--accent); color: #000; border: none;
+  border-radius: 8px; padding: 7px 14px; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 12px; cursor: pointer;
+}
+
+/* ── Empty state ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .icon { font-size: 40px; margin-bottom: 14px; opacity: .4; }
+.empty h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text); opacity: .6; }
+.empty p { font-size: 12px; line-height: 1.6; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: calc(80px + var(--safe-bottom) + 10px); left: 16px; right: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; z-index: 999;
+  font-size: 13px; display: flex; align-items: center; gap: 10px;
+  transform: translateY(20px); opacity: 0; transition: all .3s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: rgba(0,255,136,0.3); }
+.toast.error { border-color: rgba(255,77,109,0.3); }
+
+/* ── Interval badges ── */
+.interval-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.interval-opt {
+  padding: 10px 6px; text-align: center; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  cursor: pointer; transition: all .15s;
+  font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);
+}
+.interval-opt.selected { border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.08); color: var(--accent); }
+.interval-opt .val { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.interval-opt.selected .val { color: var(--accent); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>Price<span>Watch</span></h1>
+    <p id="topbarSub">Monitor de preços com IA</p>
+  </div>
+  <div class="status-pill inactive" id="statusPill">
+    <div class="status-dot"></div>
+    <span id="statusPillText">Inativo</span>
+  </div>
+</div>
+
+<!-- Scrollable content -->
+<div class="content">
+
+  <!-- PAGE: Produtos -->
+  <div class="page active" id="page-products">
+    <div id="installBanner" style="display:none" class="install-banner">
+      <div class="icon">📲</div>
+      <div>
+        <h3>Instale como app</h3>
+        <p>Funciona como app nativo, recebe notificações em segundo plano e fica na gaveta de apps.</p>
+        <button class="btn-install" onclick="installApp()">Instalar agora</button>
+      </div>
+    </div>
+    <div id="notifBanner" style="display:none" class="permission-banner">
+      <div class="icon">🔔</div>
+      <div>
+        <h3>Ativar notificações</h3>
+        <p>Permita notificações para ser alertado quando o preço cair abaixo do seu limite — mesmo com o app fechado.</p>
+        <button class="btn-allow" onclick="requestNotifPermission()">Permitir notificações</button>
+      </div>
+    </div>
+    <div id="productsList"></div>
+  </div>
+
+  <!-- PAGE: Adicionar -->
+  <div class="page" id="page-add">
+    <div class="card">
+      <div class="card-header"><h2>➕ Novo produto</h2></div>
+      <div style="padding:16px">
+        <div class="form-group">
+          <label class="form-label">Nome do produto</label>
+          <input class="form-input" id="addName" placeholder="Ex: iPhone 17, Galaxy S25, PS5..." maxlength="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Busca para a IA</label>
+          <input class="form-input" id="addQuery" placeholder="Ex: iPhone 17 256GB, PlayStation 5 slim..." maxlength="100">
+          <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:5px">Seja específico: modelo, capacidade, versão</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Me alertar quando o preço for abaixo de</label>
+          <div class="input-row">
+            <div class="input-prefix">R$</div>
+            <input class="form-input" id="addAlertPrice" type="number" placeholder="5500" min="1" max="999999">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Verificar a cada</label>
+          <div class="interval-grid" id="intervalGrid">
+            <div class="interval-opt" data-val="10" onclick="selectInterval(10)">
+              <div class="val">10</div>min
+            </div>
+            <div class="interval-opt selected" data-val="30" onclick="selectInterval(30)">
+              <div class="val">30</div>min
+            </div>
+            <div class="interval-opt" data-val="60" onclick="selectInterval(60)">
+              <div class="val">1</div>hora
+            </div>
+            <div class="interval-opt" data-val="120" onclick="selectInterval(120)">
+              <div class="val">2</div>horas
+            </div>
+            <div class="interval-opt" data-val="360" onclick="selectInterval(360)">
+              <div class="val">6</div>horas
+            </div>
+            <div class="interval-opt" data-val="720" onclick="selectInterval(720)">
+              <div class="val">12</div>horas
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btnAdd" onclick="addProduct()">Adicionar produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: Configurações -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <div class="card-header"><h2>⚙️ Configurações</h2></div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Notificações</div>
+          <div class="settings-sub" id="notifStatus">Verificando...</div>
+        </div>
+        <button class="toggle" id="notifToggle" onclick="toggleNotifications()"></button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Monitoramento em background</div>
+          <div class="settings-sub">Verifica preços automaticamente</div>
+        </div>
+        <button class="toggle on" id="bgToggle"></button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Apenas lojas verificadas</div>
+          <div class="settings-sub">Amazon, Magalu, Americanas, Casas Bahia, Fast Shop, Apple</div>
+        </div>
+        <button class="toggle on" disabled style="opacity:.5"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>🛡️ Lojas monitoradas</h2></div>
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+        ${[
+          ['📦','Amazon Brasil','Ótimo','var(--green)'],
+          ['🛍️','Magazine Luiza','Ótimo','var(--green)'],
+          ['🔴','Americanas','Bom','var(--accent)'],
+          ['🟡','Casas Bahia','Bom','var(--accent)'],
+          ['⚡','Fast Shop','Ótimo','var(--green)'],
+          ['🍎','Apple Store BR','Oficial','var(--green)'],
+        ].map(([e,n,r,c]) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px">${e} ${n}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:${c}">✓ ${r}</span>
+          </div>`).join('')}
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px">
+          Shopee, AliExpress e OLX são ignoradas.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>📱 Instalar como app</h2></div>
+      <div style="padding:14px 16px">
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px">
+          No Chrome Android: toque nos <strong style="color:var(--text)">3 pontinhos</strong> → <strong style="color:var(--text)">"Adicionar à tela inicial"</strong>. O app ficará na sua gaveta e enviará notificações mesmo fechado.
+        </p>
+        <button class="btn-primary" style="background:var(--purple);color:#fff" onclick="installApp()" id="btnInstallSettings">Instalar agora</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottomnav">
+  <button class="nav-item active" onclick="showPage('products',this)">
+    <div class="nav-icon">📋</div>
+    <span>Produtos</span>
+  </button>
+  <button class="nav-item" onclick="showPage('add',this)">
+    <div class="nav-icon">➕</div>
+    <span>Adicionar</span>
+  </button>
+  <button class="nav-item" onclick="showPage('settings',this)">
+    <div class="nav-icon">⚙️</div>
+    <span>Config</span>
+  </button>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────
+let products = [];
+let selectedInterval = 30;
+let deferredInstall = null;
+let checkTimers = {};
+
+const STORE_INFO = {
+  amazon:     { name:'Amazon Brasil',  emoji:'📦', fallback:'https://www.amazon.com.br/s?k=' },
+  magalu:     { name:'Magazine Luiza', emoji:'🛍️', fallback:'https://www.magazineluiza.com.br/busca/' },
+  americanas: { name:'Americanas',     emoji:'🔴', fallback:'https://www.americanas.com.br/busca/' },
+  casasbahia: { name:'Casas Bahia',    emoji:'🟡', fallback:'https://www.casasbahia.com.br/busca?q=' },
+  fastshop:   { name:'Fast Shop',      emoji:'⚡', fallback:'https://www.fastshop.com.br/web/p/busca?q=' },
+  apple:      { name:'Apple Store BR', emoji:'🍎', fallback:'https://www.apple.com/br/shop/buy-iphone/' },
+};
+
+// ── DB ───────────────────────────────────────────────────
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('PriceWatchDB', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('products'))
+        db.createObjectStore('products', { keyPath: 'id' });
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = reject;
+  });
+}
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const r = db.transaction('products','readonly').objectStore('products').getAll();
+    r.onsuccess = e => res(e.target.result || []);
+    r.onerror = rej;
+  });
+}
+async function dbPut(product) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const r = db.transaction('products','readwrite').objectStore('products').put(product);
+    r.onsuccess = () => res();
+    r.onerror = rej;
+  });
+}
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const r = db.transaction('products','readwrite').objectStore('products').delete(id);
+    r.onsuccess = () => res();
+    r.onerror = rej;
+  });
+}
+
+// ── Nav ──────────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Toast ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Interval picker ──────────────────────────────────────
+function selectInterval(val) {
+  selectedInterval = val;
+  document.querySelectorAll('.interval-opt').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.val) === val);
+  });
+}
+
+// ── Render products ──────────────────────────────────────
+function renderProducts() {
+  const list = document.getElementById('productsList');
+  if (!products.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="icon">🔍</div>
+        <h3>Nenhum produto monitorado</h3>
+        <p>Toque em ➕ Adicionar para começar a monitorar qualquer produto.</p>
+      </div>`;
+    updateStatusPill();
+    return;
+  }
+
+  list.innerHTML = products.map(p => {
+    const hasOffers = p.lastOffers?.length > 0;
+    const isChecking = p.checking;
+    const cls = isChecking ? 'checking' : (p.lastOffers?.some(o => o.price <= p.alertPrice) ? 'has-alert' : '');
+    const lastCheckedStr = p.lastChecked
+      ? new Date(p.lastChecked).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+      : 'nunca';
+
+    const lowestPrice = hasOffers ? Math.min(...p.lastOffers.map(o => o.price)) : null;
+    const fmt = n => n ? 'R$ ' + n.toLocaleString('pt-BR') : '—';
+
+    const offersHtml = isChecking
+      ? `<div class="checking-row"><span class="spin">⟳</span> Verificando preços...</div>`
+      : hasOffers
+        ? p.lastOffers.sort((a,b)=>a.price-b.price).map((o,i) => {
+            const si = STORE_INFO[o.storeId] || { name: o.store||o.storeId, emoji:'🏪', fallback:'https://google.com.br/search?q=' };
+            const url = (o.url && o.url.startsWith('http') && !o.url.includes('...'))
+              ? o.url
+              : si.fallback + encodeURIComponent(p.query);
+            const isMin = o.price === lowestPrice;
+            return `<a class="offer-item" href="${url}" target="_blank" rel="noopener">
+              <span class="offer-store">${si.emoji} ${si.name}</span>
+              <span style="display:flex;align-items:center;gap:8px">
+                <span class="offer-price ${isMin?'best':''}">${fmt(o.price)}</span>
+                <span class="offer-link">↗</span>
+              </span>
+            </a>`;
+          }).join('')
+        : `<div class="no-offers">Toque em ▶ para verificar preços agora</div>`;
+
+    return `
+      <div class="product-card ${cls}" id="pcard-${p.id}">
+        <div class="product-top">
+          <div class="product-name">${p.name}</div>
+          <div class="product-actions">
+            <button class="btn-icon" onclick="checkNow('${p.id}')" title="Verificar agora">▶</button>
+            <button class="btn-icon danger" onclick="deleteProduct('${p.id}')" title="Remover">🗑</button>
+          </div>
+        </div>
+        <div class="product-meta">
+          <span class="meta-chip">🔄 a cada ${p.interval < 60 ? p.interval+'min' : (p.interval/60)+'h'}</span>
+          <span class="meta-chip alert-price">🔔 abaixo de ${fmt(p.alertPrice)}</span>
+          ${lowestPrice ? `<span class="meta-chip lowest">↓ menor: ${fmt(lowestPrice)}</span>` : ''}
+          <span class="meta-chip">🕐 ${lastCheckedStr}</span>
+        </div>
+        <div class="product-offers">${offersHtml}</div>
+      </div>`;
+  }).join('');
+
+  updateStatusPill();
+}
+
+function updateStatusPill() {
+  const pill = document.getElementById('statusPill');
+  const txt = document.getElementById('statusPillText');
+  const sub = document.getElementById('topbarSub');
+  const active = products.filter(p => !p.paused).length;
+  if (active > 0) {
+    pill.className = 'status-pill';
+    txt.textContent = `${active} ativo${active>1?'s':''}`;
+    sub.textContent = `Monitorando ${active} produto${active>1?'s':''}`;
+  } else {
+    pill.className = 'status-pill inactive';
+    txt.textContent = 'Inativo';
+    sub.textContent = 'Monitor de preços com IA';
+  }
+}
+
+// ── Add product ──────────────────────────────────────────
+async function addProduct() {
+  const name = document.getElementById('addName').value.trim();
+  const query = document.getElementById('addQuery').value.trim();
+  const alertPrice = parseInt(document.getElementById('addAlertPrice').value);
+
+  if (!name) { showToast('⚠️ Digite o nome do produto','error'); return; }
+  if (!query) { showToast('⚠️ Digite o termo de busca','error'); return; }
+  if (!alertPrice || alertPrice < 1) { showToast('⚠️ Digite um preço de alerta','error'); return; }
+
+  const product = {
+    id: Date.now().toString(),
+    name, query, alertPrice,
+    interval: selectedInterval,
+    createdAt: Date.now(),
+    lastChecked: null,
+    lastOffers: [],
+    lastLowestPrice: null,
+    checking: false,
+    paused: false,
+  };
+
+  await dbPut(product);
+  products.push(product);
+  renderProducts();
+
+  // Clear form
+  document.getElementById('addName').value = '';
+  document.getElementById('addQuery').value = '';
+  document.getElementById('addAlertPrice').value = '';
+
+  showToast(`✅ "${name}" adicionado!`, 'success');
+
+  // Switch to products tab
+  showPage('products', document.querySelector('.nav-item'));
+
+  // Schedule first check
+  scheduleChecks(product);
+
+  // Run first check immediately
+  setTimeout(() => checkNow(product.id), 1000);
+}
+
+// ── Delete product ───────────────────────────────────────
+async function deleteProduct(id) {
+  if (!confirm('Remover este produto do monitoramento?')) return;
+  await dbDelete(id);
+  products = products.filter(p => p.id !== id);
+  clearTimeout(checkTimers[id]);
+  delete checkTimers[id];
+  renderProducts();
+  showToast('🗑️ Produto removido');
+}
+
+// ── Check now ────────────────────────────────────────────
+async function checkNow(id) {
+  const product = products.find(p => p.id === id);
+  if (!product || product.checking) return;
+
+  product.checking = true;
+  renderProducts();
+
+  try {
+    const offers = await fetchPrices(product);
+    const prevLowest = product.lastLowestPrice || Infinity;
+    const lowestNow = offers.length ? Math.min(...offers.map(o => o.price)) : null;
+
+    product.lastOffers = offers;
+    product.lastChecked = Date.now();
+    product.checking = false;
+    if (lowestNow) product.lastLowestPrice = lowestNow;
+
+    await dbPut(product);
+    renderProducts();
+
+    // Check alert
+    if (lowestNow && lowestNow <= product.alertPrice) {
+      const dropped = prevLowest !== Infinity && lowestNow < prevLowest;
+      notify(product, offers, lowestNow, dropped);
+    }
+
+    showToast(`✓ ${product.name} atualizado`, 'success');
+  } catch (err) {
+    product.checking = false;
+    renderProducts();
+    showToast('⚠️ Erro ao verificar preços', 'error');
+    console.error(err);
+  }
+}
+
+// ── Fetch prices via Anthropic API ───────────────────────
+async function fetchPrices(product) {
+  const today = new Date().toLocaleDateString('pt-BR');
+
+  const prompt = `Hoje é ${today}. Busque o preço ATUAL de "${product.query}" nas lojas: Amazon Brasil, Magazine Luiza, Americanas, Casas Bahia, Fast Shop, Apple Store Brasil. NÃO inclua Shopee, AliExpress, OLX.
+
+Retorne SOMENTE JSON sem markdown:
+{
+  "offers": [
+    {"storeId":"amazon","store":"Amazon Brasil","price":1234,"url":"https://www.amazon.com.br/dp/REAL_URL","desc":"nome do produto"}
+  ]
+}
+storeId válidos: amazon, magalu, americanas, casasbahia, fastshop, apple.
+IMPORTANTE: url deve ser o link REAL encontrado na busca. Inclua só lojas com preço real.`;
+
+  let messages = [{ role: 'user', content: prompt }];
+  const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+
+  for (let turn = 0; turn < 6; turn++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, tools, messages })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    messages.push({ role: 'assistant', content: data.content });
+
+    if (data.stop_reason === 'end_turn') {
+      const tb = [...data.content].reverse().find(b => b.type === 'text');
+      const raw = (tb?.text || '').replace(/```json|```/g, '');
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error('JSON inválido');
+      const parsed = JSON.parse(m[0]);
+      return parsed.offers || [];
+    }
+
+    if (data.stop_reason === 'tool_use') {
+      const toolUses = data.content.filter(b => b.type === 'tool_use');
+      messages.push({
+        role: 'user',
+        content: toolUses.map(b => ({ type: 'tool_result', tool_use_id: b.id, content: 'Resultados disponíveis.' }))
+      });
+      continue;
+    }
+
+    // fallback: try to extract text
+    const tb = [...data.content].reverse().find(b => b.type === 'text');
+    if (tb?.text) {
+      const m = tb.text.replace(/```json|```/g,'').match(/\{[\s\S]*\}/);
+      if (m) { const parsed = JSON.parse(m[0]); return parsed.offers || []; }
+    }
+    break;
+  }
+  return [];
+}
+
+// ── Notifications ────────────────────────────────────────
+async function requestNotifPermission() {
+  const perm = await Notification.requestPermission();
+  updateNotifUI();
+  if (perm === 'granted') {
+    showToast('🔔 Notificações ativadas!', 'success');
+    document.getElementById('notifBanner').style.display = 'none';
+  } else {
+    showToast('⚠️ Notificações bloqueadas', 'error');
+  }
+}
+
+function notify(product, offers, lowestPrice, dropped) {
+  if (Notification.permission !== 'granted') return;
+  const bestOffer = [...offers].sort((a,b)=>a.price-b.price)[0];
+  const url = (bestOffer?.url && bestOffer.url.startsWith('http') && !bestOffer.url.includes('...'))
+    ? bestOffer.url
+    : (STORE_INFO[bestOffer?.storeId]?.fallback || 'https://google.com.br/search?q=') + encodeURIComponent(product.query);
+
+  const title = `🔔 ${product.name} abaixo de R$${product.alertPrice.toLocaleString('pt-BR')}!`;
+  const body = `Menor preço: R$ ${lowestPrice.toLocaleString('pt-BR')} na ${bestOffer?.store || 'loja'}${dropped ? ' (preço caiu!)' : ''}`;
+
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SHOW_NOTIFICATION', title, body,
+      url, tag: `price-${product.id}`
+    });
+  } else {
+    new Notification(title, { body, icon: './icon-192.png', tag: `price-${product.id}`, data: { url } });
+  }
+}
+
+function updateNotifUI() {
+  const perm = Notification.permission;
+  const toggle = document.getElementById('notifToggle');
+  const status = document.getElementById('notifStatus');
+  if (perm === 'granted') {
+    toggle.className = 'toggle on';
+    status.textContent = 'Ativadas';
+  } else if (perm === 'denied') {
+    toggle.className = 'toggle';
+    status.textContent = 'Bloqueadas no sistema';
+  } else {
+    toggle.className = 'toggle';
+    status.textContent = 'Toque para ativar';
+  }
+}
+
+function toggleNotifications() {
+  if (Notification.permission === 'granted') {
+    showToast('Para desativar, use as configurações do Android', 'error');
+  } else {
+    requestNotifPermission();
+  }
+}
+
+// ── Schedule periodic checks ─────────────────────────────
+function scheduleChecks(product) {
+  clearTimeout(checkTimers[product.id]);
+  const ms = product.interval * 60 * 1000;
+  checkTimers[product.id] = setTimeout(async () => {
+    await checkNow(product.id);
+    const updated = products.find(p => p.id === product.id);
+    if (updated) scheduleChecks(updated);
+  }, ms);
+}
+
+// ── Install PWA ──────────────────────────────────────────
+function installApp() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    deferredInstall.userChoice.then(r => {
+      if (r.outcome === 'accepted') showToast('✅ App instalado!', 'success');
+      deferredInstall = null;
+      document.getElementById('installBanner').style.display = 'none';
+    });
+  } else {
+    showToast('No Chrome: 3 pontinhos → "Adicionar à tela inicial"');
+  }
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+  showToast('✅ App instalado com sucesso!', 'success');
+});
+
+// ── Register Service Worker ──────────────────────────────
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('./sw.js');
+
+    // Request periodic background sync
+    if ('periodicSync' in reg) {
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+      if (status.state === 'granted') {
+        await reg.periodicSync.register('price-check', { minInterval: 10 * 60 * 1000 });
+      }
+    }
+
+    // Listen for SW notifications
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'SHOW_NOTIFICATION') {
+        reg.showNotification(e.data.title, {
+          body: e.data.body, icon: './icon-192.png',
+          tag: e.data.tag, data: { url: e.data.url },
+          actions: [{ action: 'open', title: '↗ Ver oferta' }]
+        });
+      }
+    });
+  } catch(err) {
+    console.warn('SW registration failed:', err);
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────
+async function init() {
+  // Load products
+  products = await dbGetAll();
+  renderProducts();
+
+  // Notifications UI
+  updateNotifUI();
+  if (Notification.permission === 'default') {
+    document.getElementById('notifBanner').style.display = 'flex';
+  }
+
+  // Register SW
+  await registerSW();
+
+  // Schedule checks for all products
+  products.forEach(p => scheduleChecks(p));
+}
+
+init();
+</script>
+</body>
+</html>
