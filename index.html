@@ -4,272 +4,192 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#00e5ff">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PriceWatch">
 <link rel="manifest" href="./manifest.json">
-<title>PriceWatch — Monitor de Preços</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>PriceWatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-:root {
-  --bg: #090c10; --surface: #0f1318; --border: #1e2530;
-  --accent: #00e5ff; --green: #00ff88; --red: #ff4d6d;
-  --yellow: #ffd166; --purple: #7b61ff;
-  --text: #e8ecf0; --muted: #5a6478; --card: #111620;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: 'Syne', sans-serif;
-  background: var(--bg); color: var(--text);
-  display: flex; flex-direction: column;
-}
-body::before {
-  content: ''; position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
-  background-size: 36px 36px; pointer-events: none; z-index: 0;
-}
-
-/* ── Top bar ── */
-.topbar {
-  position: relative; z-index: 10;
-  background: rgba(9,12,16,0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 18px 12px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
-}
-.topbar-left h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
-.topbar-left h1 span { color: var(--accent); }
-.topbar-left p { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
-.status-pill {
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.2);
-  border-radius: 20px; padding: 5px 11px;
-  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--green);
-}
-.status-pill.inactive { background: rgba(90,100,120,0.1); border-color: var(--border); color: var(--muted); }
-.status-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; animation: blink 1.4s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ── Content ── */
-.content {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  position: relative; z-index: 1;
-  padding-bottom: calc(80px + var(--safe-bottom));
-}
-.page { padding: 16px; display: none; }
-.page.active { display: block; }
-
-/* ── Product cards ── */
-.product-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px; margin-bottom: 12px;
-  position: relative; overflow: hidden;
-}
-.product-card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: var(--accent);
-}
-.product-card.checking::before { background: var(--yellow); animation: blink .6s infinite; }
-
-.product-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.product-name { font-size: 15px; font-weight: 700; flex: 1; }
-
-.btn-icon {
-  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04); cursor: pointer; color: white;
-}
-
-.product-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.meta-chip {
-  font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px;
-  border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--muted);
-}
-
-.offer-item {
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(255,255,255,0.02); border: 1px solid var(--border);
-  border-radius: 8px; padding: 8px 12px; text-decoration: none; color: inherit; margin-top: 5px;
-}
-
-/* ── Form ── */
-.form-group { margin-bottom: 14px; }
-.form-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); display: block; margin-bottom: 5px; }
-.form-input {
-  width: 100%; background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 11px; color: var(--text); font-family: 'DM Mono', monospace;
-}
-.btn-primary {
-  width: 100%; background: var(--accent); color: #000; border: none;
-  border-radius: 10px; padding: 13px; font-weight: 700; cursor: pointer;
-}
-
-/* ── Nav ── */
-.bottomnav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: rgba(9,12,16,0.97); backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border); display: flex;
-  padding-bottom: var(--safe-bottom);
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 10px; cursor: pointer; border: none; background: none; color: var(--muted);
-}
-.nav-item.active { color: var(--accent); }
-
-.toast {
-  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-  background: #1e2530; padding: 10px 20px; border-radius: 20px;
-  font-size: 12px; opacity: 0; transition: 0.3s; pointer-events: none;
-}
-.toast.show { opacity: 1; }
+    body { background: #090c10; color: #e8ecf0; font-family: 'Syne', sans-serif; }
+    .card { background: #111620; border: 1px solid #1e2530; border-radius: 16px; }
+    .accent { color: #00e5ff; }
+    .btn-gradient { background: linear-gradient(90deg, #00e5ff, #7b61ff); color: #000; }
 </style>
 </head>
-<body>
+<body class="p-4 pb-24">
 
-<div class="topbar">
-  <div class="topbar-left">
-    <h1>Price<span>Watch</span></h1>
-    <p id="topbarSub">Monitor Ativo</p>
-  </div>
-  <div class="status-pill" id="statusPill">
-    <div class="status-dot"></div>
-    <span id="statusPillText">Online</span>
-  </div>
+<header class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-extrabold italic">Price<span class="accent">Watch</span></h1>
+    <div id="statusPill" class="text-[10px] bg-green-500/10 text-green-400 px-3 py-1 rounded-full border border-green-500/20">● ONLINE</div>
+</header>
+
+<div id="installBanner" class="hidden card p-4 mb-4 border-cyan-500/30 bg-cyan-500/5">
+    <div class="flex gap-3 items-center">
+        <span class="text-2xl">📲</span>
+        <div class="flex-1">
+            <h3 class="text-sm font-bold">Instalar Aplicativo</h3>
+            <p class="text-xs text-gray-400">Acesse mais rápido da sua tela inicial.</p>
+        </div>
+        <button onclick="installApp()" class="btn-gradient px-4 py-2 rounded-lg text-xs font-bold">INSTALAR</button>
+    </div>
 </div>
 
-<div class="content">
-  <div class="page active" id="page-products">
-    <div id="productsList"></div>
-  </div>
-
-  <div class="page" id="page-add">
-    <div class="form-group">
-      <label class="form-label">Nome do Produto</label>
-      <input class="form-input" id="addName" placeholder="Ex: iPhone 17">
+<div id="notifBanner" class="hidden card p-4 mb-4 border-purple-500/30 bg-purple-500/5">
+    <div class="flex gap-3 items-center">
+        <span class="text-2xl">🔔</span>
+        <div class="flex-1">
+            <h3 class="text-sm font-bold">Ativar Alertas</h3>
+            <p class="text-xs text-gray-400">Receba avisos quando o preço cair.</p>
+        </div>
+        <button onclick="requestNotif()" class="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold">ATIVAR</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Preço de Alerta (R$)</label>
-      <input class="form-input" id="addAlertPrice" type="number" placeholder="5000">
-    </div>
-    <button class="btn-primary" onclick="addProduct()">Começar a Monitorar</button>
-  </div>
 </div>
 
-<nav class="bottomnav">
-  <button class="nav-item active" onclick="showPage('products', this)"><span>📋 Produtos</span></button>
-  <button class="nav-item" onclick="showPage('add', this)"><span>➕ Novo</span></button>
+<div id="productsList" class="space-y-4">
+    </div>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-[#090c10]/90 backdrop-blur-lg border-t border-white/5 p-4 flex justify-around">
+    <button onclick="showSection('list')" class="flex flex-col items-center gap-1 text-cyan-400">
+        <span class="text-xl">📋</span><span class="text-[10px] font-bold">LISTA</span>
+    </button>
+    <button onclick="showSection('add')" class="flex flex-col items-center gap-1 text-gray-500">
+        <span class="text-xl">➕</span><span class="text-[10px] font-bold">NOVO</span>
+    </button>
 </nav>
 
-<div class="toast" id="toast"></div>
+<div id="modalAdd" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 p-6 flex items-center">
+    <div class="card w-full p-6">
+        <h2 class="text-xl font-bold mb-4">Novo Monitoramento</h2>
+        <input id="addName" type="text" placeholder="Nome do produto" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg mb-3 outline-none focus:border-cyan-500 transition">
+        <input id="addPrice" type="number" placeholder="Preço de Alerta (Ex: 5000)" class="w-full bg-black/40 border border-white/10 p-3 rounded-lg mb-6 outline-none focus:border-cyan-500 transition">
+        <div class="flex gap-3">
+            <button onclick="showSection('list')" class="flex-1 py-3 text-gray-400 font-bold">CANCELAR</button>
+            <button onclick="saveProduct()" class="flex-1 btn-gradient py-3 rounded-lg font-bold">SALVAR</button>
+        </div>
+    </div>
+</div>
 
 <script>
-let products = JSON.parse(localStorage.getItem('pw_products') || '[]');
+let products = JSON.parse(localStorage.getItem('pw_prods') || '[]');
+let deferredPrompt;
 
-function showPage(name, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  el.classList.add('active');
+// Registro do Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(() => console.log("SW OK"));
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+// Captura evento de instalação
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').classList.remove('hidden');
+});
 
-function renderProducts() {
-  const list = document.getElementById('productsList');
-  if (!products.length) {
-    list.innerHTML = '<p style="text-align:center; margin-top:50px; color:#5a6478;">Nenhum produto monitorado.</p>';
-    return;
-  }
-  list.innerHTML = products.map(p => `
-    <div class="product-card ${p.checking ? 'checking' : ''}">
-      <div class="product-top">
-        <div class="product-name">${p.name}</div>
-        <button class="btn-icon" onclick="deleteProduct('${p.id}')">🗑</button>
-      </div>
-      <div class="product-meta">
-        <span class="meta-chip">🔔 Abaixo de: R$ ${p.alertPrice}</span>
-        <span class="meta-chip">💰 Último: ${p.lastPrice ? 'R$ '+p.lastPrice : '---'}</span>
-      </div>
-      <button class="btn-primary" style="padding:8px; font-size:12px;" onclick="checkNow('${p.id}')">
-        ${p.checking ? 'A verificar...' : 'Verificar Agora'}
-      </button>
-    </div>
-  `).join('');
-}
-
-async function addProduct() {
-  const name = document.getElementById('addName').value;
-  const price = document.getElementById('addAlertPrice').value;
-  if(!name || !price) return showToast("Preencha os campos!");
-
-  const newP = { id: Date.now().toString(), name, alertPrice: price, lastPrice: null, checking: false };
-  products.push(newP);
-  save();
-  showPage('products', document.querySelector('.nav-item'));
-  renderProducts();
-}
-
-function deleteProduct(id) {
-  products = products.filter(p => p.id !== id);
-  save();
-  renderProducts();
-}
-
-function save() {
-  localStorage.setItem('pw_products', JSON.stringify(products));
-}
-
-// ── LÓGICA DE VERIFICAÇÃO CORRIGIDA (SEM ERRO DE CORS) ──
-async function checkNow(id) {
-  const p = products.find(x => x.id === id);
-  p.checking = true;
-  renderProducts();
-
-  try {
-    const query = encodeURIComponent(p.name);
-    // Usamos o AllOrigins para permitir o acesso aos dados da web sem erro de CORS
-    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.google.com/search?q=' + query + '+preço')}`;
-    
-    const resp = await fetch(url);
-    const data = await resp.json();
-    const html = data.contents;
-
-    // Procura por padrões de preços (R$ X.XXX,XX)
-    const priceMatch = html.match(/R\$\s?(\d{1,3}(\.\d{3})*,\d{2})/);
-    
-    if (priceMatch) {
-      const foundPrice = priceMatch[1].replace('.', '').replace(',', '.');
-      p.lastPrice = parseFloat(foundPrice);
-      
-      if (p.lastPrice <= p.alertPrice) {
-        showToast(`🔥 BAIXOU! ${p.name} por R$ ${p.lastPrice}`);
-      } else {
-        showToast(`Preço atual: R$ ${p.lastPrice}`);
-      }
-    } else {
-      showToast("Não foi possível ler o preço desta vez.");
+async function installApp() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') document.getElementById('installBanner').classList.add('hidden');
+        deferredPrompt = null;
     }
-  } catch (e) {
-    showToast("Erro de conexão.");
-  } finally {
-    p.checking = false;
-    save();
-    renderProducts();
-  }
 }
 
-renderProducts();
+function requestNotif() {
+    Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+            document.getElementById('notifBanner').classList.add('hidden');
+            alert("✅ Notificações ativadas!");
+        }
+    });
+}
+
+function showSection(type) {
+    document.getElementById('modalAdd').classList.toggle('hidden', type !== 'add');
+}
+
+function saveProduct() {
+    const name = document.getElementById('addName').value;
+    const price = document.getElementById('addPrice').value;
+    if(!name || !price) return;
+    
+    products.push({ id: Date.now(), name, alertPrice: parseFloat(price), lastPrice: null });
+    localStorage.setItem('pw_prods', JSON.stringify(products));
+    document.getElementById('addName').value = '';
+    document.getElementById('addPrice').value = '';
+    showSection('list');
+    render();
+}
+
+function render() {
+    const container = document.getElementById('productsList');
+    if(products.length === 0) {
+        container.innerHTML = `<div class="text-center py-20 opacity-30 text-sm">Nenhum produto sendo monitorado</div>`;
+        return;
+    }
+    
+    container.innerHTML = products.map(p => `
+        <div class="card p-5 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="font-bold text-lg">${p.name}</h3>
+                    <p class="text-[10px] text-gray-500 font-mono tracking-widest">LIMITE: R$ ${p.alertPrice.toLocaleString()}</p>
+                </div>
+                <button onclick="remove(${p.id})" class="text-gray-600 hover:text-red-500">🗑️</button>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-2xl font-black ${p.lastPrice <= p.alertPrice ? 'text-green-400' : 'text-white'}">
+                    ${p.lastPrice ? 'R$ ' + p.lastPrice.toLocaleString() : '---'}
+                </span>
+                <button onclick="checkPrice(${p.id})" id="btn-${p.id}" class="bg-white/5 border border-white/10 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-white/10 transition">VERIFICAR AGORA</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function checkPrice(id) {
+    const p = products.find(x => x.id === id);
+    const btn = document.getElementById(`btn-${id}`);
+    btn.innerText = "⏳...";
+    btn.disabled = true;
+
+    try {
+        // Usando um proxy diferente para evitar o erro de conexão
+        const query = encodeURIComponent(p.name + " preço");
+        const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.google.com.br/search?q=' + query)}&timestamp=${Date.now()}`;
+        
+        const res = await fetch(proxy);
+        const data = await res.json();
+        
+        // Regex para achar preços R$
+        const prices = data.contents.match(/R\$\s?(\d{1,3}(\.\d{3})*,\d{2})/g);
+        
+        if(prices) {
+            const numericPrices = prices.map(val => parseFloat(val.replace(/[R$\s.]/g, '').replace(',', '.')));
+            p.lastPrice = Math.min(...numericPrices);
+            localStorage.setItem('pw_prods', JSON.stringify(products));
+            render();
+            if(p.lastPrice <= p.alertPrice) {
+                new Notification("🔥 PREÇO BAIXOU!", { body: `${p.name} está custando R$ ${p.lastPrice}` });
+            }
+        } else {
+            alert("Não encontrei o preço. Tente um nome mais específico.");
+        }
+    } catch (e) {
+        alert("Erro de conexão. Verifique sua internet.");
+    } finally {
+        btn.innerText = "VERIFICAR AGORA";
+        btn.disabled = false;
+    }
+}
+
+function remove(id) {
+    products = products.filter(p => p.id !== id);
+    localStorage.setItem('pw_prods', JSON.stringify(products));
+    render();
+}
+
+// Verifica permissão de notificação ao carregar
+if(Notification.permission === 'default') document.getElementById('notifBanner').classList.remove('hidden');
+render();
 </script>
 </body>
 </html>
